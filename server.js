@@ -120,6 +120,7 @@ app.post("/api/background", async (req, res) => {
   try {
     const settings = await getSettings();
     settings.activeBackground = req.body.path;
+    settings.activeBackgroundUrl = req.body.url;
     await saveSettings(settings);
     res.json({ success: true });
   } catch (e) {
