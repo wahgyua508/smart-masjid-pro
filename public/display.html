@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en" style="">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Main Display Screen - Smart Masjid Pro</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      @keyframes ticker {
+        0% {
+          transform: translateX(100%);
+        }
+        100% {
+          transform: translateX(-100%);
+        }
+      }
+      .animate-ticker {
+        animation: ticker 30s linear infinite;
+        white-space: nowrap;
+        will-change: transform;
+        display: inline-block;
+      }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#ebf1ff",
+              "on-secondary-container": "#745c00",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#bfc9c3",
+              background: "#f9f9ff",
+              "on-surface": "#121c2a",
+              "inverse-surface": "#273140",
+              "surface-container-lowest": "#ffffff",
+              tertiary: "#2c2f30",
+              "on-primary": "#ffffff",
+              "on-background": "#121c2a",
+              "on-tertiary-container": "#b0b2b3",
+              outline: "#707974",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#574500",
+              "on-tertiary-fixed": "#191c1d",
+              "tertiary-fixed-dim": "#c5c7c8",
+              "secondary-fixed": "#ffe088",
+              "surface-bright": "#f9f9ff",
+              "on-error-container": "#93000a",
+              error: "#ba1a1a",
+              "surface-dim": "#d0daef",
+              "inverse-primary": "#95d3ba",
+              "on-primary-fixed": "#002117",
+              primary: "#003527",
+              "tertiary-fixed": "#e1e3e4",
+              "primary-fixed-dim": "#95d3ba",
+              "surface-variant": "#d9e3f7",
+              "surface-container": "#e6eeff",
+              "tertiary-container": "#424546",
+              "on-primary-fixed-variant": "#0b513d",
+              "primary-fixed": "#b0f0d6",
+              "primary-container": "#064e3b",
+              "surface-container-highest": "#d9e3f7",
+              "on-surface-variant": "#404944",
+              surface: "#f9f9ff",
+              "on-tertiary-fixed-variant": "#454748",
+              "surface-container-high": "#dee9fd",
+              "secondary-fixed-dim": "#e9c349",
+              secondary: "#735c00",
+              "secondary-container": "#fed65b",
+              "surface-container-low": "#eff3ff",
+              "on-secondary-fixed": "#241a00",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#80bea6",
+              "surface-tint": "#2b6954",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              gutter: "24px",
+              unit: "8px",
+              "container-padding-desktop": "40px",
+              "container-padding-mobile": "16px",
+              "section-gap": "64px",
+            },
+            fontFamily: {
+              "body-md": ["Inter"],
+              "headline-lg": ["Montserrat"],
+              "display-lg-mobile": ["Montserrat"],
+              "body-lg": ["Inter"],
+              "display-lg": ["Montserrat"],
+              "label-md": ["Inter"],
+              "display-xl": ["Montserrat"],
+              "headline-md": ["Montserrat"],
+            },
+            fontSize: {
+              "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+              "headline-lg": [
+                "48px",
+                { lineHeight: "56px", fontWeight: "600" },
+              ],
+              "display-lg-mobile": [
+                "48px",
+                { lineHeight: "56px", fontWeight: "700" },
+              ],
+              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+              "display-lg": ["80px", { lineHeight: "96px", fontWeight: "700" }],
+              "label-md": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.05em",
+                  fontWeight: "600",
+                },
+              ],
+              "display-xl": [
+                "120px",
+                {
+                  lineHeight: "140px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-md": [
+                "32px",
+                { lineHeight: "40px", fontWeight: "600" },
+              ],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="w-screen h-screen overflow-hidden bg-surface relative font-body-md text-body-md text-on-surface"
+  >
+    <div
+      id="bg-layer"
+      class="absolute inset-0 z-0 bg-cover bg-center transition-all duration-1000"
+      style="background-image: url(&quot;/images/bg_masjid1.jpg&quot;)"
+    >
+      <div
+        class="absolute inset-0 bg-surface/30 backdrop-blur-sm mix-blend-overlay"
+      ></div>
+      <div
+        class="absolute inset-0 bg-gradient-to-t from-surface-dim/80 via-transparent to-surface/20"
+      ></div>
+    </div>
+
+    <main
+      class="relative z-10 w-full h-[calc(100vh-100px)] flex px-4 gap-gutter py-6"
+    >
+      <div
+        class="w-[200px] h-full flex flex-col justify-between"
+        id="prayer-cards-container"
+      >
+        <div
+          class="prayer-card bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-3 flex flex-col items-center justify-center border border-surface-container-high shadow-md relative overflow-hidden flex-1 mb-2 transition-all duration-500"
+        >
+          <div class="bg-overlay absolute inset-0 bg-primary/5 hidden"></div>
+          <span
+            class="name-el font-headline-md text-base text-on-surface-variant relative z-10 transition-colors duration-300"
+            >Subuh</span
+          >
+          <span
+            class="time-el font-display-lg text-2xl leading-tight font-bold text-on-surface relative z-10 tabular-nums transition-colors duration-300"
+            >04:35</span
+          >
+          <span
+            class="next-badge hidden font-label-md text-[10px] text-[#d4af37] relative z-10 mt-1 uppercase tracking-wider"
+            >Sholat Selanjutnya</span
+          >
+        </div>
+        <div
+          class="prayer-card bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-3 flex flex-col items-center justify-center border border-surface-container-high shadow-md relative overflow-hidden flex-1 mb-2 transition-all duration-500"
+        >
+          <div class="bg-overlay absolute inset-0 bg-primary/5 hidden"></div>
+          <span
+            class="name-el font-headline-md text-base text-on-surface-variant relative z-10 transition-colors duration-300"
+            >Dzuhur</span
+          >
+          <span
+            class="time-el font-display-lg text-2xl leading-tight font-bold text-on-surface relative z-10 tabular-nums transition-colors duration-300"
+            >12:05</span
+          >
+          <span
+            class="next-badge hidden font-label-md text-[10px] text-[#d4af37] relative z-10 mt-1 uppercase tracking-wider"
+            >Sholat Selanjutnya</span
+          >
+        </div>
+        <div
+          class="prayer-card bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-3 flex flex-col items-center justify-center border border-surface-container-high shadow-md relative overflow-hidden flex-1 mb-2 transition-all duration-500"
+        >
+          <div class="bg-overlay absolute inset-0 bg-primary/5 hidden"></div>
+          <span
+            class="name-el font-headline-md text-base text-on-surface-variant relative z-10 transition-colors duration-300"
+            >Ashar</span
+          >
+          <span
+            class="time-el font-display-lg text-2xl leading-tight font-bold text-on-surface relative z-10 tabular-nums transition-colors duration-300"
+            >15:28</span
+          >
+          <span
+            class="next-badge hidden font-label-md text-[10px] text-[#d4af37] relative z-10 mt-1 uppercase tracking-wider"
+            >Sholat Selanjutnya</span
+          >
+        </div>
+        <div
+          class="prayer-card bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-3 flex flex-col items-center justify-center border border-surface-container-high shadow-md relative overflow-hidden flex-1 mb-2 transition-all duration-500"
+        >
+          <div class="bg-overlay absolute inset-0 bg-primary/5 hidden"></div>
+          <span
+            class="name-el font-headline-md text-base text-on-surface-variant relative z-10 transition-colors duration-300"
+            >Maghrib</span
+          >
+          <span
+            class="time-el font-display-lg text-2xl leading-tight font-bold text-on-surface relative z-10 tabular-nums transition-colors duration-300"
+            >18:10</span
+          >
+          <span
+            class="next-badge hidden font-label-md text-[10px] text-[#d4af37] relative z-10 mt-1 uppercase tracking-wider"
+            >Sholat Selanjutnya</span
+          >
+        </div>
+        <div
+          class="prayer-card bg-surface-container-lowest/95 backdrop-blur-md rounded-lg p-3 flex flex-col items-center justify-center border border-surface-container-high shadow-md relative overflow-hidden flex-1 transition-all duration-500"
+        >
+          <div class="bg-overlay absolute inset-0 bg-primary/5 hidden"></div>
+          <span
+            class="name-el font-headline-md text-base text-on-surface-variant relative z-10 transition-colors duration-300"
+            >Isya</span
+          >
+          <span
+            class="time-el font-display-lg text-2xl leading-tight font-bold text-on-surface relative z-10 tabular-nums transition-colors duration-300"
+            >19:24</span
+          >
+          <span
+            class="next-badge hidden font-label-md text-[10px] text-[#d4af37] relative z-10 mt-1 uppercase tracking-wider"
+            >Sholat Selanjutnya</span
+          >
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col h-full">
+        <div class="w-full flex justify-center mb-2">
+          <div
+            class="bg-surface-container-lowest/85 backdrop-blur-xl rounded-xl shadow-lg border border-surface-container-highest w-full text-center -mt-4 p-2 max-w-md"
+          >
+            <h1
+              class="font-display-xl leading-tight text-primary tracking-tight tabular-nums text-3xl"
+              id="display-clock"
+            >
+              --:--<span
+                class="font-display-lg text-primary/70 ml-1 text-xl"
+                id="display-seconds"
+                >--</span
+              >
+            </h1>
+            <div
+              class="w-12 h-0.5 bg-secondary-container rounded-full mx-auto my-2"
+            ></div>
+            <h2
+              class="font-headline-lg leading-tight text-on-surface text-base"
+              id="display-day"
+            >
+              --
+            </h2>
+            <p
+              class="font-headline-md text-on-surface-variant text-sm"
+              id="display-date"
+            >
+              --
+            </p>
+          </div>
+        </div>
+
+        <div class="flex-1 flex gap-gutter pb-4">
+          <div
+            class="flex-1 bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+          >
+            <div
+              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-100 z-10"
+            >
+              <div class="px-6 py-3 border-b border-surface-container-high">
+                <h3 class="font-headline-md text-xl text-primary">
+                  Laporan Keuangan Masjid
+                </h3>
+              </div>
+              <div
+                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+              >
+                <img
+                  id="laporan-image-1"
+                  src="/laporan_keuangan/laporan_keuangan.jpg"
+                  alt="Laporan Keuangan"
+                  class="w-full h-full object-contain"
+                  onerror="
+                    this.style.display = 'none';
+                    document.getElementById(
+                      'laporan-fallback-1',
+                    ).style.display = 'flex';
+                  "
+                />
+                <div
+                  id="laporan-fallback-1"
+                  class="flex-1 flex items-center justify-center opacity-40"
+                >
+                  <span
+                    class="material-symbols-outlined text-7xl text-on-surface-variant"
+                    >monitoring</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div
+              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-0 z-0"
+            >
+              <div class="px-6 py-3 border-b border-surface-container-high">
+                <h3 class="font-headline-md text-xl text-primary">
+                  Laporan Keuangan Masjid
+                </h3>
+              </div>
+              <div
+                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+              >
+                <img
+                  id="laporan-image-2"
+                  src="/laporan_keuangan/laporan_keuangan.jpg"
+                  alt="Laporan Keuangan"
+                  class="w-full h-full object-contain"
+                  onerror="
+                    this.style.display = 'none';
+                    document.getElementById(
+                      'laporan-fallback-2',
+                    ).style.display = 'flex';
+                  "
+                />
+                <div
+                  id="laporan-fallback-2"
+                  class="flex-1 flex items-center justify-center opacity-40"
+                >
+                  <span
+                    class="material-symbols-outlined text-7xl text-on-surface-variant"
+                    >monitoring</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div
+              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-0 z-0"
+            >
+              <div class="px-6 py-3 border-b border-surface-container-high">
+                <h3
+                  id="laporan-kegiatan-title"
+                  class="font-headline-md text-xl text-primary"
+                >
+                  Laporan Kegiatan Masjid
+                </h3>
+              </div>
+              <div
+                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+              >
+                <img
+                  id="laporan-kegiatan-image"
+                  src="/laporan_kegiatan/laporan_kegiatan.jpg"
+                  alt="Laporan Kegiatan"
+                  class="w-full h-full object-contain"
+                  onerror="
+                    this.style.display = 'none';
+                    document.getElementById(
+                      'laporan-kegiatan-fallback',
+                    ).style.display = 'flex';
+                  "
+                />
+                <div
+                  id="laporan-kegiatan-fallback"
+                  class="flex-1 flex items-center justify-center opacity-40"
+                >
+                  <span
+                    class="material-symbols-outlined text-7xl text-on-surface-variant"
+                    >event</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="w-[200px] flex flex-col items-end">
+        <div
+          class="bg-primary text-on-primary rounded-xl p-4 flex flex-col items-center justify-between shadow-xl relative overflow-hidden w-full aspect-[3/4]"
+        >
+          <div
+            class="absolute top-0 right-0 w-24 h-24 bg-primary-container rounded-bl-full opacity-50 z-0"
+          ></div>
+          <div class="text-center relative z-10 w-full">
+            <span
+              id="qr-title"
+              class="font-headline-md text-xl font-bold block text-secondary-fixed"
+              >QR AMAL</span
+            >
+            <span class="font-body-md text-xs text-on-primary/90 block"
+              >Scan to Donate</span
+            >
+          </div>
+          <div
+            class="bg-surface-container-lowest p-2 rounded-lg w-3/4 aspect-square flex items-center justify-center shadow-inner relative z-10 my-2 overflow-hidden"
+          >
+            <img
+              id="qr-image"
+              src="/qrcodes/qr_amal.png"
+              alt="QR Donasi"
+              class="w-full h-full object-contain"
+              onerror="
+                this.style.display = 'none';
+                document.getElementById('qr-fallback').style.display = 'block';
+              "
+            />
+            <span
+              id="qr-fallback"
+              class="material-symbols-outlined text-6xl text-on-surface leading-none"
+              style="display: none"
+              >qr_code_2</span
+            >
+          </div>
+          <span
+            class="font-label-md text-[10px] text-primary-fixed-dim relative z-10 uppercase tracking-wider"
+            >Masjid Al-Falah</span
+          >
+        </div>
+      </div>
+    </main>
+
+    <div
+      class="absolute bottom-0 left-0 w-full h-[100px] text-on-tertiary shadow-[0px_-4px_20px_rgba(0,0,0,0.2)] z-20 flex items-center overflow-hidden bg-[#064e3b]"
+    >
+      <div
+        class="z-30 px-8 h-full flex items-center shadow-[10px_0_20px_-5px_rgba(0,0,0,0.3)] shrink-0 bg-[#064e3b]"
+      >
+        <span
+          class="material-symbols-outlined text-secondary-fixed text-[40px]"
+          style="font-variation-settings: &quot;FILL&quot; 1"
+          >campaign</span
+        >
+      </div>
+      <div class="flex-1 overflow-hidden relative h-full flex items-center">
+        <p
+          id="ticker-text"
+          class="font-headline-md text-headline-md tracking-wide animate-ticker"
+        >
+          Selamat datang di Masjid Al-Falah. Mohon nonaktifkan telepon genggam
+          Anda selama berada di dalam masjid. Salurkan donasi terbaik Anda
+          melalui QR Amal yang tersedia. Jazakumullah Khairan Katsiran.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Logika Jam & Tanggal Real-time ---
+        function updateClock() {
+          const now = new Date();
+
+          // Set Jam
+          const h = String(now.getHours()).padStart(2, "0");
+          const m = String(now.getMinutes()).padStart(2, "0");
+          const s = String(now.getSeconds()).padStart(2, "0");
+          document.getElementById("display-clock").innerHTML =
+            `${h}:${m}<span class="font-display-lg text-primary/70 ml-1 text-xl" id="display-seconds">${s}</span>`;
+
+          // Set Tanggal Masehi
+          const months = [
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember",
+          ];
+          const gregorianDate = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+          document.getElementById("display-date").textContent = gregorianDate;
+
+          // Set Tanggal Hijriah secara Native (DENGAN PENYESUAIAN OFFSET)
+          const days = [
+            "Minggu",
+            "Senin",
+            "Selasa",
+            "Rabu",
+            "Kamis",
+            "Jumat",
+            "Sabtu",
+          ];
+          const currentDay = days[now.getDay()];
+
+          try {
+            // Konfigurasi Koreksi Hari Hijriah (-1 untuk mundur 1 hari)
+            const hijriOffset = -1;
+
+            // Buat objek Date khusus untuk Hijriah agar tidak mengubah jam asli
+            const dateForHijri = new Date(now.getTime());
+            dateForHijri.setDate(dateForHijri.getDate() + hijriOffset);
+
+            const hijriFormatter = new Intl.DateTimeFormat(
+              "id-ID-u-ca-islamic",
+              { day: "numeric", month: "long", year: "numeric" },
+            );
+
+            // Lakukan format menggunakan dateForHijri
+            const hijriDate = hijriFormatter.format(dateForHijri);
+            document.getElementById("display-day").textContent =
+              `${currentDay}, ${hijriDate} H`;
+          } catch (e) {
+            document.getElementById("display-day").textContent =
+              `${currentDay}, 24 Muharram 1446 H`;
+          }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- Logika Transisi Laporan ---
+        const slides = document.querySelectorAll(".carousel-slide");
+        if (slides.length > 0) {
+          let currentSlide = 0;
+          setInterval(() => {
+            slides[currentSlide].classList.remove("opacity-100", "z-10");
+            slides[currentSlide].classList.add("opacity-0", "z-0");
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.remove("opacity-0", "z-0");
+            slides[currentSlide].classList.add("opacity-100", "z-10");
+          }, 5000);
+        }
+
+        // --- Logika Waktu Sholat Berikutnya ---
+        function updateNextPrayer() {
+          const cards = document.querySelectorAll(".prayer-card");
+          if (!cards.length) return;
+
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMin = now.getMinutes();
+          const currentTimeInMinutes = currentHour * 60 + currentMin;
+
+          let nextPrayerIndex = 0; // Default to Subuh if after Isya
+
+          for (let i = 0; i < cards.length; i++) {
+            const timeEl = cards[i].querySelector(".time-el");
+            if (timeEl) {
+              const timeStr = timeEl.innerText.trim();
+              const parts = timeStr.split(":");
+              if (parts.length === 2) {
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                const prayerTimeInMinutes = h * 60 + m;
+
+                if (prayerTimeInMinutes > currentTimeInMinutes) {
+                  nextPrayerIndex = i;
+                  break;
+                }
+              }
+            }
+          }
+
+          cards.forEach((card, index) => {
+            const isNext = index === nextPrayerIndex;
+            const bgOverlay = card.querySelector(".bg-overlay");
+            const nameEl = card.querySelector(".name-el");
+            const timeEl = card.querySelector(".time-el");
+            const nextBadge = card.querySelector(".next-badge");
+
+            if (isNext) {
+              card.classList.remove(
+                "border-surface-container-high",
+                "border",
+                "shadow-md",
+              );
+              card.classList.add(
+                "border-l-4",
+                "border-[#d4af37]",
+                "shadow-lg",
+                "scale-[1.02]",
+                "z-20",
+                "bg-surface-container-lowest",
+              );
+              card.classList.remove("bg-surface-container-lowest/95");
+
+              if (bgOverlay) bgOverlay.classList.remove("hidden");
+              if (nameEl) {
+                nameEl.classList.remove("text-on-surface-variant");
+                nameEl.classList.add("text-on-surface");
+              }
+              if (timeEl) {
+                timeEl.classList.remove("text-on-surface");
+                timeEl.classList.add("text-primary");
+              }
+              if (nextBadge) nextBadge.classList.remove("hidden");
+            } else {
+              card.classList.add(
+                "border-surface-container-high",
+                "border",
+                "shadow-md",
+                "bg-surface-container-lowest/95",
+              );
+              card.classList.remove(
+                "border-l-4",
+                "border-[#d4af37]",
+                "shadow-lg",
+                "scale-[1.02]",
+                "z-20",
+                "bg-surface-container-lowest",
+              );
+
+              if (bgOverlay) bgOverlay.classList.add("hidden");
+              if (nameEl) {
+                nameEl.classList.add("text-on-surface-variant");
+                nameEl.classList.remove("text-on-surface");
+              }
+              if (timeEl) {
+                timeEl.classList.add("text-on-surface");
+                timeEl.classList.remove("text-primary");
+              }
+              if (nextBadge) nextBadge.classList.add("hidden");
+            }
+          });
+        }
+
+        updateNextPrayer();
+        setInterval(updateNextPrayer, 60000);
+
+        // --- Polling untuk Update QR Code & Laporan Keuangan ---
+        let lastQRPath = null;
+        let lastQRLabel = null;
+        let lastReport1 = null;
+        let lastReport2 = null;
+        let lastJadwal = null;
+        let lastTicker = null;
+        let lastBackground = null;
+
+        async function updateDisplaySettings() {
+          try {
+            const response = await fetch("/api/settings");
+            const settings = await response.json();
+
+            // ── Update Background Utama ──────────────────────────
+            if (
+              settings.activeBackground &&
+              settings.activeBackground !== lastBackground
+            ) {
+              const bgLayer = document.getElementById("bg-layer");
+              if (bgLayer) {
+                const newBg = "/" + settings.activeBackground + "?t=" + Date.now();
+                console.log("🔄 Update Background:", newBg);
+                bgLayer.style.backgroundImage = "url('" + newBg + "')";
+                lastBackground = settings.activeBackground;
+              }
+            }
+
+            // ── Update QR Image ──────────────────────────────────
+            if (
+              settings.activeQR &&
+              (settings.activeQR !== lastQRPath || lastQRPath === null)
+            ) {
+              const qrImg = document.getElementById("qr-image");
+              if (qrImg) {
+                const newSrc = "/" + settings.activeQR + "?t=" + Date.now();
+                console.log("🔄 Update QR Code:", newSrc);
+                qrImg.src = newSrc;
+                qrImg.style.display = "block";
+                const fallback = document.getElementById("qr-fallback");
+                if (fallback) fallback.style.display = "none";
+                lastQRPath = settings.activeQR;
+              }
+            }
+
+            // ── Update QR Label ──────────────────────────────────
+            if (settings.qrLabel && settings.qrLabel !== lastQRLabel) {
+              lastQRLabel = settings.qrLabel;
+              const qrTitle = document.getElementById("qr-title");
+              if (qrTitle) qrTitle.textContent = settings.qrLabel;
+              console.log("📝 Update QR Label:", settings.qrLabel);
+            }
+
+            // ── Update Laporan Keuangan Slide 1 ─────────────────
+            if (
+              settings.activeReport &&
+              (settings.activeReport !== lastReport1 || lastReport1 === null)
+            ) {
+              const img1 = document.getElementById("laporan-image-1");
+              if (img1) {
+                const newSrc = "/" + settings.activeReport + "?t=" + Date.now();
+                console.log("🔄 Update Laporan Slide 1:", newSrc);
+                img1.src = newSrc;
+                img1.style.display = "block";
+                const fallback1 = document.getElementById("laporan-fallback-1");
+                if (fallback1) fallback1.style.display = "none";
+                lastReport1 = settings.activeReport;
+              }
+            }
+
+            // ── Update Laporan Keuangan Slide 2 ─────────────────
+            if (
+              settings.activeReport2 &&
+              (settings.activeReport2 !== lastReport2 || lastReport2 === null)
+            ) {
+              const img2 = document.getElementById("laporan-image-2");
+              if (img2) {
+                const newSrc =
+                  "/" + settings.activeReport2 + "?t=" + Date.now();
+                console.log("🔄 Update Laporan Slide 2:", newSrc);
+                img2.src = newSrc;
+                img2.style.display = "block";
+                const fallback2 = document.getElementById("laporan-fallback-2");
+                if (fallback2) fallback2.style.display = "none";
+                lastReport2 = settings.activeReport2;
+              }
+            }
+
+            // ── Update Jadwal Kajian ─────────────────────────────
+            const titleEl = document.getElementById("laporan-kegiatan-title");
+            const kegiatanImg = document.getElementById(
+              "laporan-kegiatan-image",
+            );
+            const kegiatanFallback = document.getElementById(
+              "laporan-kegiatan-fallback",
+            );
+            if (settings.activeJadwal) {
+              // Ada jadwal aktif: ganti judul dan gambar
+              if (titleEl) titleEl.textContent = "Jadwal Kajian Masjid";
+              if (settings.activeJadwal !== lastJadwal || lastJadwal === null) {
+                if (kegiatanImg) {
+                  const newSrc =
+                    "/" + settings.activeJadwal + "?t=" + Date.now();
+                  console.log("🔄 Update Jadwal Kajian:", newSrc);
+                  kegiatanImg.src = newSrc;
+                  kegiatanImg.style.display = "block";
+                  if (kegiatanFallback) kegiatanFallback.style.display = "none";
+                  lastJadwal = settings.activeJadwal;
+                }
+              }
+            } else {
+              // Tidak ada jadwal aktif: kembalikan ke Laporan Kegiatan default
+              if (titleEl) titleEl.textContent = "Laporan Kegiatan Masjid";
+              if (lastJadwal !== null) {
+                if (kegiatanImg) {
+                  kegiatanImg.src = "/laporan_kegiatan/laporan_kegiatan.jpg";
+                  kegiatanImg.style.display = "block";
+                  if (kegiatanFallback) kegiatanFallback.style.display = "none";
+                }
+                lastJadwal = null;
+              }
+            }
+
+            // ── Update Ticker / Running Text ─────────────────────
+            if (
+              settings.ticker !== undefined &&
+              settings.ticker !== lastTicker
+            ) {
+              const tickerEl = document.getElementById("ticker-text");
+              if (tickerEl) {
+                tickerEl.textContent = settings.ticker;
+                console.log("📝 Update Ticker:", settings.ticker);
+              }
+              lastTicker = settings.ticker;
+            }
+          } catch (e) {
+            console.error("❌ Error polling display settings:", e);
+          }
+        }
+
+        // Load semua settings saat pertama kali DOM ready
+        console.log("🚀 Display loaded - fetching initial settings...");
+        updateDisplaySettings();
+
+        // Poll setiap 5 detik untuk update
+        setInterval(updateDisplaySettings, 5000);
+      });
+    </script>
+  </body>
+</html>

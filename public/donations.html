@@ -1,0 +1,584 @@
+<!doctype html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Donation & QR Manager - Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#ebf1ff",
+              "on-secondary-container": "#745c00",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#bfc9c3",
+              background: "#f9f9ff",
+              "on-surface": "#121c2a",
+              "inverse-surface": "#273140",
+              "surface-container-lowest": "#ffffff",
+              tertiary: "#2c2f30",
+              "on-primary": "#ffffff",
+              "on-background": "#121c2a",
+              "on-tertiary-container": "#b0b2b3",
+              outline: "#707974",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed-variant": "#574500",
+              "on-tertiary-fixed": "#191c1d",
+              "tertiary-fixed-dim": "#c5c7c8",
+              "secondary-fixed": "#ffe088",
+              "surface-bright": "#f9f9ff",
+              "on-error-container": "#93000a",
+              error: "#ba1a1a",
+              "surface-dim": "#d0daef",
+              "inverse-primary": "#95d3ba",
+              "on-primary-fixed": "#002117",
+              primary: "#003527",
+              "tertiary-fixed": "#e1e3e4",
+              "primary-fixed-dim": "#95d3ba",
+              "surface-variant": "#d9e3f7",
+              "surface-container": "#e6eeff",
+              "tertiary-container": "#424546",
+              "on-primary-fixed-variant": "#0b513d",
+              "primary-fixed": "#b0f0d6",
+              "primary-container": "#064e3b",
+              "surface-container-highest": "#d9e3f7",
+              "on-surface-variant": "#404944",
+              surface: "#f9f9ff",
+              "on-tertiary-fixed-variant": "#454748",
+              "surface-container-high": "#dee9fd",
+              "secondary-fixed-dim": "#e9c349",
+              secondary: "#735c00",
+              "secondary-container": "#fed65b",
+              "surface-container-low": "#eff3ff",
+              "on-secondary-fixed": "#241a00",
+              "error-container": "#ffdad6",
+              "on-primary-container": "#80bea6",
+              "surface-tint": "#2b6954",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              gutter: "24px",
+              unit: "8px",
+              "container-padding-desktop": "40px",
+              "container-padding-mobile": "16px",
+              "section-gap": "64px",
+            },
+            fontFamily: {
+              "body-md": ["Inter"],
+              "headline-lg": ["Montserrat"],
+              "display-lg-mobile": ["Montserrat"],
+              "body-lg": ["Inter"],
+              "display-lg": ["Montserrat"],
+              "label-md": ["Inter"],
+              "display-xl": ["Montserrat"],
+              "headline-md": ["Montserrat"],
+            },
+            fontSize: {
+              "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+              "headline-lg": [
+                "48px",
+                { lineHeight: "56px", fontWeight: "600" },
+              ],
+              "display-lg-mobile": [
+                "48px",
+                { lineHeight: "56px", fontWeight: "700" },
+              ],
+              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+              "display-lg": ["80px", { lineHeight: "96px", fontWeight: "700" }],
+              "label-md": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.05em",
+                  fontWeight: "600",
+                },
+              ],
+              "display-xl": [
+                "120px",
+                {
+                  lineHeight: "140px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-md": [
+                "32px",
+                { lineHeight: "40px", fontWeight: "600" },
+              ],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background-color: #f9f9ff;
+        color: #121c2a;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #d9e3f7;
+        border-radius: 9999px;
+      }
+      .tonal-shadow {
+        box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.03);
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #003527;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: Inter, sans-serif;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 999;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #drop-zone.dragover {
+        background: #e6eeff;
+        border-color: #003527;
+      }
+    </style>
+  </head>
+  <body class="flex h-screen overflow-hidden font-body-md text-body-md">
+    <div id="toast" class="toast"></div>
+
+    <!-- Sidebar -->
+    <aside
+      class="bg-primary shadow-lg h-full w-64 flex flex-col py-gutter px-4 shrink-0 z-20"
+    >
+      <div class="mb-8 flex flex-col items-center text-center mt-4">
+        <div
+          class="w-16 h-16 rounded-full bg-surface-container-high mb-3 flex items-center justify-center border-2 border-secondary/30"
+        >
+          <span
+            class="material-symbols-outlined text-primary"
+            style="font-variation-settings: &quot;FILL&quot; 1; font-size: 32px"
+            >account_circle</span
+          >
+        </div>
+        <h2 class="font-headline-md text-headline-md text-secondary text-lg">
+          Admin Portal
+        </h2>
+        <p class="font-label-md text-label-md text-on-primary/70 mt-1">
+          Masjid Al-Falah
+        </p>
+      </div>
+      <nav class="flex-1 space-y-2 overflow-y-auto">
+        <a
+          href="/dashboard.html"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-primary/70 hover:bg-primary-container transition-all font-label-md text-label-md"
+        >
+          <span class="material-symbols-outlined">dashboard</span>Dashboard
+        </a>
+        <a
+          href="/donations.html"
+          class="flex items-center gap-3 px-4 py-3 bg-secondary text-on-secondary rounded-lg font-bold transition-all font-label-md text-label-md"
+        >
+          <span
+            class="material-symbols-outlined"
+            style="font-variation-settings: &quot;FILL&quot; 1"
+            >qr_code_2</span
+          >Donations
+        </a>
+      </nav>
+      <div class="mt-auto pt-6 border-t border-on-primary/10">
+        <a
+          href="/display.html"
+          target="_blank"
+          class="w-full py-3 px-4 bg-secondary text-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-2 hover:bg-secondary-container transition-colors"
+        >
+          <span class="material-symbols-outlined">visibility</span>View Live
+          Display
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-background">
+      <header
+        class="bg-surface shadow-sm px-container-padding-desktop py-4 flex justify-between items-center shrink-0"
+      >
+        <div>
+          <h1 class="font-headline-md text-headline-md text-primary">
+            Donation & QR Manager
+          </h1>
+          <p class="text-on-surface-variant font-body-md text-body-md mt-1">
+            Konfigurasi detail donasi yang ditampilkan di layar utama.
+          </p>
+        </div>
+        <div class="flex items-center gap-4">
+          <button
+            class="w-10 h-10 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors"
+          >
+            <span class="material-symbols-outlined">notifications</span>
+          </button>
+        </div>
+      </header>
+
+      <div
+        class="flex-1 overflow-y-auto p-gutter lg:p-container-padding-desktop"
+      >
+        <div
+          class="grid grid-cols-1 lg:grid-cols-12 gap-gutter max-w-7xl mx-auto"
+        >
+          <!-- Form Panel -->
+          <div class="lg:col-span-7 space-y-gutter">
+            <div
+              class="bg-surface rounded-xl p-6 lg:p-8 tonal-shadow border border-surface-container-low"
+            >
+              <div
+                class="flex items-center gap-3 mb-6 border-b border-surface-container pb-4"
+              >
+                <span class="material-symbols-outlined text-primary text-2xl"
+                  >settings_applications</span
+                >
+                <h2
+                  class="font-headline-md text-headline-md text-xl text-on-surface"
+                >
+                  QR Settings
+                </h2>
+              </div>
+
+              <div class="space-y-6">
+                <!-- Label Input -->
+                <div>
+                  <label
+                    class="block font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider"
+                    for="qr-label"
+                    >Display Label Text</label
+                  >
+                  <input
+                    class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline"
+                    id="qr-label"
+                    placeholder="Contoh: QR AMAL / SCAN TO DONATE"
+                    type="text"
+                  />
+                  <p class="text-xs text-outline mt-2">
+                    Teks ini muncul di atas QR code pada layar display.
+                  </p>
+                </div>
+
+                <!-- QR Upload -->
+                <div>
+                  <label
+                    class="block font-label-md text-label-md text-on-surface-variant mb-2 uppercase tracking-wider"
+                    >QR Code Image</label
+                  >
+                  <div
+                    id="drop-zone"
+                    class="border-2 border-dashed border-outline-variant rounded-xl p-8 text-center hover:bg-surface-container-low hover:border-primary/50 transition-colors cursor-pointer group"
+                    onclick="document.getElementById('qr-file-input').click()"
+                    ondragover="
+                      event.preventDefault();
+                      this.classList.add('dragover');
+                    "
+                    ondragleave="this.classList.remove('dragover')"
+                    ondrop="handleDrop(event)"
+                  >
+                    <div
+                      class="w-16 h-16 bg-surface-container mx-auto rounded-full flex items-center justify-center mb-4 group-hover:bg-primary-container transition-colors"
+                    >
+                      <span
+                        class="material-symbols-outlined text-primary group-hover:text-on-primary transition-colors text-2xl"
+                        >upload_file</span
+                      >
+                    </div>
+                    <p
+                      class="font-body-md text-body-md text-on-surface font-semibold mb-1"
+                    >
+                      Klik untuk upload atau drag & drop
+                    </p>
+                    <p class="text-sm text-on-surface-variant">
+                      PNG, JPG, SVG (maks. 5MB)
+                    </p>
+                    <p class="text-xs text-outline mt-4" id="drop-filename">
+                      Untuk hasil terbaik, gunakan gambar persegi kontras
+                      tinggi.
+                    </p>
+                    <input
+                      type="file"
+                      id="qr-file-input"
+                      accept="image/*"
+                      class="hidden"
+                      onchange="handleFileSelect(event)"
+                    />
+                  </div>
+                </div>
+
+                <!-- Preview file terpilih -->
+                <div id="selected-preview" class="hidden">
+                  <p
+                    class="font-label-md text-label-md text-on-surface-variant mb-2"
+                  >
+                    Preview file terpilih:
+                  </p>
+                  <img
+                    id="preview-img"
+                    class="w-32 h-32 object-contain border border-outline-variant rounded-lg p-2 bg-surface-container-lowest"
+                  />
+                </div>
+
+                <!-- Actions -->
+                <div
+                  class="pt-6 mt-6 border-t border-surface-container flex justify-end gap-4"
+                >
+                  <button
+                    id="discard-btn"
+                    class="px-6 py-3 rounded-lg border border-primary text-primary font-label-md text-label-md hover:bg-primary/5 transition-colors"
+                    type="button"
+                  >
+                    Discard Changes
+                  </button>
+                  <button
+                    id="save-btn"
+                    class="px-6 py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md font-bold shadow-sm hover:bg-primary-container transition-colors flex items-center gap-2"
+                    type="button"
+                  >
+                    <span class="material-symbols-outlined text-sm">save</span
+                    >Save Configuration
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview Panel -->
+          <div class="lg:col-span-5">
+            <div class="sticky top-0">
+              <h3
+                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4 flex items-center gap-2"
+              >
+                <span
+                  class="material-symbols-outlined text-secondary text-sm"
+                  style="font-variation-settings: &quot;FILL&quot; 1"
+                  >visibility</span
+                >
+                Live Display Preview
+              </h3>
+              <div
+                class="bg-surface rounded-xl overflow-hidden shadow-lg border-l-4 border-secondary relative aspect-[4/5] flex flex-col justify-center items-center p-8 text-center bg-gradient-to-b from-surface to-surface-container-low"
+              >
+                <div class="relative z-10 w-full">
+                  <div
+                    class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-6"
+                  >
+                    <span class="material-symbols-outlined text-2xl"
+                      >mosque</span
+                    >
+                  </div>
+                  <h4
+                    class="font-headline-md text-headline-md text-primary mb-2 text-2xl"
+                  >
+                    Support Your Masjid
+                  </h4>
+                  <div
+                    class="inline-block bg-secondary-container/30 text-secondary px-4 py-1.5 rounded-full font-label-md text-label-md tracking-widest uppercase mb-8"
+                    id="preview-label"
+                  >
+                    SCAN TO DONATE
+                  </div>
+                  <div
+                    class="bg-surface p-4 rounded-xl shadow-sm border border-surface-container mx-auto w-48 h-48 flex items-center justify-center overflow-hidden"
+                  >
+                    <img
+                      id="preview-qr"
+                      src=""
+                      alt="QR Code Preview"
+                      class="w-full h-full object-contain hidden"
+                    />
+                    <span
+                      id="preview-qr-placeholder"
+                      class="material-symbols-outlined text-primary/40 text-6xl"
+                      >qr_code_2</span
+                    >
+                  </div>
+                  <p
+                    class="mt-6 text-on-surface-variant font-body-md text-sm max-w-[200px] mx-auto"
+                  >
+                    May Allah reward your generosity.
+                  </p>
+                </div>
+              </div>
+              <div
+                class="mt-4 flex justify-between items-center text-sm text-outline px-2"
+              >
+                <span>Preview Scale: 30%</span>
+                <span class="flex items-center gap-1">
+                  <span
+                    class="w-2 h-2 rounded-full bg-primary inline-block"
+                  ></span>
+                  Display Active
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let selectedFile = null;
+
+      // ── Toast helper ────────────────────────────────────────
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 3000);
+      }
+
+      // ── Load current QR settings ────────────────────────────
+      async function loadSettings() {
+        try {
+          const data = await fetch("/api/settings").then((r) => r.json());
+
+          // Set label
+          document.getElementById("qr-label").value = data.qrLabel || "";
+          document.getElementById("preview-label").textContent =
+            data.qrLabel || "SCAN TO DONATE";
+
+          // Set QR preview dari server
+          if (data.activeQR) {
+            const img = document.getElementById("preview-qr");
+            img.src = "/" + data.activeQR;
+            img.classList.remove("hidden");
+            document
+              .getElementById("preview-qr-placeholder")
+              .classList.add("hidden");
+          }
+        } catch (e) {
+          console.error("Gagal memuat settings:", e);
+        }
+      }
+      loadSettings();
+
+      // ── Label input → update preview langsung ──────────────
+      document
+        .getElementById("qr-label")
+        .addEventListener("input", function () {
+          document.getElementById("preview-label").textContent =
+            this.value || "SCAN TO DONATE";
+        });
+
+      // ── Handle file select via klik ─────────────────────────
+      function handleFileSelect(e) {
+        const file = e.target.files[0];
+        if (file) processFile(file);
+      }
+
+      // ── Handle drag & drop ──────────────────────────────────
+      function handleDrop(e) {
+        e.preventDefault();
+        document.getElementById("drop-zone").classList.remove("dragover");
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) processFile(file);
+        else showToast("File harus berupa gambar.");
+      }
+
+      // ── Process file (preview + simpan referensi) ───────────
+      function processFile(file) {
+        if (file.size > 5 * 1024 * 1024) {
+          showToast("File terlalu besar. Maks 5MB.");
+          return;
+        }
+        selectedFile = file;
+
+        document.getElementById("drop-filename").textContent =
+          `File terpilih: ${file.name}`;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          // Preview di form
+          const prev = document.getElementById("preview-img");
+          prev.src = ev.target.result;
+          document
+            .getElementById("selected-preview")
+            .classList.remove("hidden");
+
+          // Preview di panel kanan
+          const qrPrev = document.getElementById("preview-qr");
+          qrPrev.src = ev.target.result;
+          qrPrev.classList.remove("hidden");
+          document
+            .getElementById("preview-qr-placeholder")
+            .classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // ── Save configuration ──────────────────────────────────
+      document
+        .getElementById("save-btn")
+        .addEventListener("click", async () => {
+          const label = document.getElementById("qr-label").value.trim();
+          if (!label) {
+            showToast("Label tidak boleh kosong.");
+            return;
+          }
+
+          const btn = document.getElementById("save-btn");
+          btn.textContent = "Menyimpan...";
+          btn.disabled = true;
+
+          try {
+            const form = new FormData();
+            form.append("label", label);
+            if (selectedFile) form.append("qrImage", selectedFile);
+
+            await fetch("/api/qr?type=qr", { method: "POST", body: form });
+            showToast("✅ Konfigurasi QR berhasil disimpan!");
+            selectedFile = null;
+          } catch {
+            showToast("❌ Gagal menyimpan konfigurasi.");
+          } finally {
+            btn.innerHTML =
+              '<span class="material-symbols-outlined text-sm">save</span> Save Configuration';
+            btn.disabled = false;
+          }
+        });
+
+      // ── Discard changes ─────────────────────────────────────
+      document.getElementById("discard-btn").addEventListener("click", () => {
+        selectedFile = null;
+        document.getElementById("qr-file-input").value = "";
+        document.getElementById("selected-preview").classList.add("hidden");
+        document.getElementById("drop-filename").textContent =
+          "Untuk hasil terbaik, gunakan gambar persegi kontras tinggi.";
+        loadSettings();
+        showToast("Perubahan dibatalkan.");
+      });
+    </script>
+  </body>
+</html>

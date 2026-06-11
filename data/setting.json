@@ -1,0 +1,6 @@
+{
+  "activeBackground": "images/bg_masjid1.jpg",
+  "masjidName": "Masjid Al-Falah",
+  "activeQR": "qrcodes/qr_amal.png",
+  "qrLabel": "SCAN TO DONATE"
+}
