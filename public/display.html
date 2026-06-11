@@ -674,7 +674,7 @@
             ) {
               const bgLayer = document.getElementById("bg-layer");
               if (bgLayer) {
-                const newBg = "/" + settings.activeBackground + "?t=" + Date.now();
+                const newBg = settings.activeBackgroundUrl || "/" + settings.activeBackground;
                 console.log("🔄 Update Background:", newBg);
                 bgLayer.style.backgroundImage = "url('" + newBg + "')";
                 lastBackground = settings.activeBackground;
@@ -688,7 +688,7 @@
             ) {
               const qrImg = document.getElementById("qr-image");
               if (qrImg) {
-                const newSrc = "/" + settings.activeQR + "?t=" + Date.now();
+                const newSrc = settings.activeQRUrl || "/" + settings.activeQR;
                 console.log("🔄 Update QR Code:", newSrc);
                 qrImg.src = newSrc;
                 qrImg.style.display = "block";
@@ -713,7 +713,7 @@
             ) {
               const img1 = document.getElementById("laporan-image-1");
               if (img1) {
-                const newSrc = "/" + settings.activeReport + "?t=" + Date.now();
+                const newSrc = settings.activeReportUrl || "/" + settings.activeReport;
                 console.log("🔄 Update Laporan Slide 1:", newSrc);
                 img1.src = newSrc;
                 img1.style.display = "block";
@@ -730,8 +730,7 @@
             ) {
               const img2 = document.getElementById("laporan-image-2");
               if (img2) {
-                const newSrc =
-                  "/" + settings.activeReport2 + "?t=" + Date.now();
+                const newSrc = settings.activeReport2Url || "/" + settings.activeReport2;
                 console.log("🔄 Update Laporan Slide 2:", newSrc);
                 img2.src = newSrc;
                 img2.style.display = "block";
@@ -754,8 +753,7 @@
               if (titleEl) titleEl.textContent = "Jadwal Kajian Masjid";
               if (settings.activeJadwal !== lastJadwal || lastJadwal === null) {
                 if (kegiatanImg) {
-                  const newSrc =
-                    "/" + settings.activeJadwal + "?t=" + Date.now();
+                  const newSrc = settings.activeJadwalUrl || "/" + settings.activeJadwal;
                   console.log("🔄 Update Jadwal Kajian:", newSrc);
                   kegiatanImg.src = newSrc;
                   kegiatanImg.style.display = "block";

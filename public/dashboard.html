@@ -763,9 +763,9 @@
             return;
           }
 
-          bgs.forEach((path) => {
-            const isActive = path === active;
-            const name = path.split("/").pop();
+          bgs.forEach((item) => {
+            const isActive = item.path === active;
+            const name = item.path.split("/").pop();
             const card = document.createElement("div");
             card.className = `group relative rounded-xl overflow-hidden border-2 transition-colors ${
               isActive
@@ -774,10 +774,10 @@
             }`;
             card.innerHTML = `
                     ${isActive ? `<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold z-10 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active</div>` : ""}
-                    ${!isActive ? `<button class="delete-bg-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${path}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
+                    ${!isActive ? `<button class="delete-bg-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${item.path}" data-public-id="${item.public_id||''}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
                     <div class="aspect-video w-full bg-surface-container-highest relative">
-                        <img src="/${path}" alt="${name}" class="w-full h-full object-cover"/>
-                        ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-bg-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${path}">Set Active</button></div>` : ""}
+                        <img src="${item.url}" alt="${name}" class="w-full h-full object-cover"/>
+                        ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-bg-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${item.path}" data-url="${item.url}">Set Active</button></div>` : ""}
                     </div>
                     <div class="p-3 bg-surface-container-lowest"><span class="font-label-md text-[13px] ${isActive ? "text-on-surface" : "text-on-surface-variant"} truncate block">${name}</span></div>`;
             grid.appendChild(card);
@@ -789,7 +789,7 @@
                 await fetch("/api/background", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ path: btn.dataset.path }),
+                  body: JSON.stringify({ path: btn.dataset.path, url: btn.dataset.url }),
                 });
                 showToast("✅ Background utama berhasil diubah!");
                 loadBackgrounds();
@@ -808,7 +808,7 @@
                 const res = await fetch("/api/background", {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ path: btn.dataset.path }),
+                  body: JSON.stringify({ path: btn.dataset.path, public_id: btn.dataset.publicId }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error);
@@ -869,9 +869,9 @@
           return;
         }
 
-        reports.forEach((filePath) => {
-          const isActive = filePath === activePath;
-          const name = filePath.split("/").pop();
+        reports.forEach((item) => {
+          const isActive = item.path === activePath;
+          const name = item.path.split("/").pop();
           const card = document.createElement("div");
           card.className = `group relative rounded-xl overflow-hidden border-2 transition-colors ${
             isActive
@@ -880,10 +880,10 @@
           }`;
           card.innerHTML = `
             ${isActive ? `<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold z-10 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">check_circle</span> AKTIF SLIDE ${slideNum}</div>` : ""}
-            ${!isActive ? `<button class="delete-report-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${filePath}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
+            ${!isActive ? `<button class="delete-report-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${item.path}" data-public-id="${item.public_id||''}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
             <div class="aspect-[4/3] w-full bg-surface-container-highest relative">
-              <img src="/${filePath}" alt="${name}" class="w-full h-full object-cover"/>
-              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-report-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${filePath}" data-slide="${slideNum}">Aktifkan Slide ${slideNum}</button></div>` : ""}
+              <img src="${item.url}" alt="${name}" class="w-full h-full object-cover"/>
+              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-report-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${item.path}" data-url="${item.url}" data-slide="${slideNum}">Aktifkan Slide ${slideNum}</button></div>` : ""}
             </div>
             <div class="p-3 bg-surface-container-lowest"><span class="font-label-md text-[13px] ${isActive ? "text-on-surface" : "text-on-surface-variant"} truncate block">${name}</span></div>`;
           grid.appendChild(card);
@@ -898,6 +898,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   path: btn.dataset.path,
+                  url: btn.dataset.url,
                   slide: parseInt(btn.dataset.slide),
                 }),
               });
@@ -918,7 +919,7 @@
               const res = await fetch("/api/report", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ path: btn.dataset.path }),
+                body: JSON.stringify({ path: btn.dataset.path, public_id: btn.dataset.publicId }),
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error);
@@ -1002,9 +1003,9 @@
           return;
         }
 
-        jadwals.forEach((filePath) => {
-          const isActive = filePath === activePath;
-          const name = filePath.split("/").pop();
+        jadwals.forEach((item) => {
+          const isActive = item.path === activePath;
+          const name = item.path.split("/").pop();
           const card = document.createElement("div");
           card.className = `group relative rounded-xl overflow-hidden border-2 transition-colors ${
             isActive
@@ -1013,10 +1014,10 @@
           }`;
           card.innerHTML = `
             ${isActive ? `<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold z-10 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">check_circle</span> AKTIF</div>` : ""}
-            ${!isActive ? `<button class="delete-jadwal-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${filePath}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
+            ${!isActive ? `<button class="delete-jadwal-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${item.path}" data-public-id="${item.public_id||''}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
             <div class="aspect-[4/3] w-full bg-surface-container-highest relative">
-              <img src="/${filePath}" alt="${name}" class="w-full h-full object-cover"/>
-              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-jadwal-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${filePath}">Aktifkan</button></div>` : ""}
+              <img src="${item.url}" alt="${name}" class="w-full h-full object-cover"/>
+              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-jadwal-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${item.path}" data-url="${item.url}">Aktifkan</button></div>` : ""}
             </div>
             <div class="p-3 bg-surface-container-lowest"><span class="font-label-md text-[13px] ${isActive ? "text-on-surface" : "text-on-surface-variant"} truncate block">${name}</span></div>`;
           grid.appendChild(card);
@@ -1029,7 +1030,7 @@
               await fetch("/api/jadwal", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ path: btn.dataset.path }),
+                body: JSON.stringify({ path: btn.dataset.path, url: btn.dataset.url }),
               });
               showToast("✅ Jadwal kajian berhasil diperbarui!");
               loadJadwals();
@@ -1048,7 +1049,7 @@
               const res = await fetch("/api/jadwal", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ path: btn.dataset.path }),
+                body: JSON.stringify({ path: btn.dataset.path, public_id: btn.dataset.publicId }),
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error);
