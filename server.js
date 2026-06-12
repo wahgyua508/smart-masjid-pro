@@ -21,11 +21,13 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+// ── Batas maksimal gambar per kategori ───────────────────
+const MAX_IMAGES = 3;
+
 // ── Helper: ambil settings dari Redis ────────────────────
 async function getSettings() {
   const data = await redis.get("masjid:settings");
   if (!data) {
-    // Default awal jika Redis kosong
     return {
       activeQR: null,
       qrLabel: "SCAN TO DONATE",
@@ -60,11 +62,38 @@ async function listCloudinaryImages(folder) {
     prefix: `masjid/${folder}/`,
     max_results: 100,
   });
-  return result.resources.map((r) => ({
+  // Urutkan dari yang terlama (created_at ascending)
+  const sorted = result.resources.sort(
+    (a, b) => new Date(a.created_at) - new Date(b.created_at)
+  );
+  return sorted.map((r) => ({
     path: `${folder}/${r.public_id.split("/").pop()}`,
     url: r.secure_url,
     public_id: r.public_id,
+    created_at: r.created_at,
   }));
+}
+
+// ── Helper: hapus gambar terlama jika melebihi MAX_IMAGES ─
+// activePublicIds: public_id gambar yang sedang aktif (tidak boleh dihapus)
+async function enforceLimit(folder, activePublicIds = []) {
+  try {
+    const images = await listCloudinaryImages(folder);
+    if (images.length < MAX_IMAGES) return; // masih di bawah limit
+
+    // Butuh 1 slot untuk gambar baru, hitung kelebihan
+    const excess = images.length - MAX_IMAGES + 1;
+    const toDelete = images
+      .filter((img) => !activePublicIds.includes(img.public_id))
+      .slice(0, excess); // ambil yang paling lama
+
+    for (const img of toDelete) {
+      await cloudinary.uploader.destroy(img.public_id);
+      console.log(`🗑️ Auto-deleted old image: ${img.public_id}`);
+    }
+  } catch (e) {
+    console.error("enforceLimit error:", e.message);
+  }
 }
 
 // ── Helper: upload buffer ke Cloudinary ──────────────────
@@ -129,9 +158,20 @@ app.post("/api/background", async (req, res) => {
 });
 
 // ── API: Upload background baru ke Cloudinary ───────────
+// Auto-hapus gambar terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-background", upload.single("bgImage"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Ambil public_id background yang sedang aktif agar tidak terhapus
+    const settings = await getSettings();
+    const activeIds = settings.activeBackground
+      ? [`masjid/uploads/${settings.activeBackground.split("/").pop()}`]
+      : [];
+
+    // Hapus yang terlama jika melebihi limit
+    await enforceLimit("uploads", activeIds);
+
     const filename = Date.now();
     const result = await uploadToCloudinary(req.file.buffer, "uploads", filename);
     res.json({ success: true, path: `uploads/${filename}`, url: result.secure_url });
@@ -173,6 +213,7 @@ app.post("/api/background/discard", async (req, res) => {
   try {
     const settings = await getSettings();
     delete settings.activeBackground;
+    delete settings.activeBackgroundUrl;
     await saveSettings(settings);
     res.json({ success: true });
   } catch (e) {
@@ -181,10 +222,16 @@ app.post("/api/background/discard", async (req, res) => {
 });
 
 // ── API: Upload & set QR Code ke Cloudinary ──────────────
+// QR hanya 1 aktif — auto-hapus QR lama saat upload baru
 app.post("/api/qr", upload.single("qrImage"), async (req, res) => {
   try {
     const settings = await getSettings();
     if (req.file) {
+      // Hapus QR lama dari Cloudinary jika ada
+      if (settings.activeQR) {
+        const oldPublicId = `masjid/qrcodes/${settings.activeQR.split("/").pop()}`;
+        await cloudinary.uploader.destroy(oldPublicId).catch(() => {});
+      }
       const filename = Date.now();
       const result = await uploadToCloudinary(req.file.buffer, "qrcodes", filename);
       settings.activeQR = `qrcodes/${filename}`;
@@ -199,9 +246,20 @@ app.post("/api/qr", upload.single("qrImage"), async (req, res) => {
 });
 
 // ── API: Upload laporan keuangan ke Cloudinary ───────────
+// Auto-hapus laporan terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-report", upload.single("reportImage"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const settings = await getSettings();
+    // Lindungi kedua laporan yang sedang aktif
+    const activeIds = [
+      settings.activeReport ? `masjid/laporan_keuangan/${settings.activeReport.split("/").pop()}` : null,
+      settings.activeReport2 ? `masjid/laporan_keuangan/${settings.activeReport2.split("/").pop()}` : null,
+    ].filter(Boolean);
+
+    await enforceLimit("laporan_keuangan", activeIds);
+
     const filename = Date.now();
     const result = await uploadToCloudinary(req.file.buffer, "laporan_keuangan", filename);
     res.json({ success: true, path: `laporan_keuangan/${filename}`, url: result.secure_url });
@@ -282,9 +340,18 @@ app.post("/api/report/discard", async (req, res) => {
 });
 
 // ── API: Upload jadwal kajian ke Cloudinary ──────────────
+// Auto-hapus jadwal terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-jadwal", upload.single("jadwalImage"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const settings = await getSettings();
+    const activeIds = settings.activeJadwal
+      ? [`masjid/jadwal_kajian/${settings.activeJadwal.split("/").pop()}`]
+      : [];
+
+    await enforceLimit("jadwal_kajian", activeIds);
+
     const filename = Date.now();
     const result = await uploadToCloudinary(req.file.buffer, "jadwal_kajian", filename);
     res.json({ success: true, path: `jadwal_kajian/${filename}`, url: result.secure_url });

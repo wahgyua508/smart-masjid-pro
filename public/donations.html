@@ -472,7 +472,7 @@
           // Set QR preview dari server
           if (data.activeQR) {
             const img = document.getElementById("preview-qr");
-            img.src = "/" + data.activeQR;
+            img.src = data.activeQRUrl || "/" + data.activeQR;
             img.classList.remove("hidden");
             document
               .getElementById("preview-qr-placeholder")
