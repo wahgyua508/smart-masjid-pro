@@ -144,6 +144,24 @@ app.post("/api/ticker", async (req, res) => {
   }
 });
 
+
+// ── API: Simpan / hapus kota lokasi waktu sholat ────────
+app.post("/api/location", async (req, res) => {
+  try {
+    const settings = await getSettings();
+    const city = (req.body.city || "").trim();
+    if (city) {
+      settings.prayerCity = city;
+    } else {
+      delete settings.prayerCity;
+    }
+    await saveSettings(settings);
+    res.json({ success: true, prayerCity: city || null });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ── API: Ganti background aktif ─────────────────────────
 app.post("/api/background", async (req, res) => {
   try {

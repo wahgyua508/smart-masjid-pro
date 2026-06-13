@@ -444,10 +444,7 @@
               >qr_code_2</span
             >
           </div>
-          <span
-            class="font-label-md text-[10px] text-primary-fixed-dim relative z-10 uppercase tracking-wider"
-            >Masjid Al-Falah</span
-          >
+
         </div>
       </div>
     </main>
@@ -469,9 +466,7 @@
           id="ticker-text"
           class="font-headline-md text-headline-md tracking-wide animate-ticker"
         >
-          Selamat datang di Masjid Al-Falah. Mohon nonaktifkan telepon genggam
-          Anda selama berada di dalam masjid. Salurkan donasi terbaik Anda
-          melalui QR Amal yang tersedia. Jazakumullah Khairan Katsiran.
+          Salurkan donasi terbaik Anda melalui QR Amal yang tersedia. Jazakumullah Khairan Katsiran.
         </p>
       </div>
     </div>
@@ -558,7 +553,7 @@
         }
 
         // --- Ambil Waktu Sholat Otomatis Berdasarkan Lokasi (Metode Kemenag RI) ---
-        function loadPrayerTimes() {
+        async function loadPrayerTimes() {
           const PRAYER_KEYS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
           const today = new Date();
           const dateStr = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
@@ -603,25 +598,54 @@
               );
           }
 
-          // Lokasi default jika izin lokasi ditolak (Jakarta, Indonesia)
+          // Lokasi default jika semua metode gagal (Jakarta)
           const DEFAULT_LAT = -6.2088;
           const DEFAULT_LON = 106.8456;
 
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (pos) =>
-                fetchTimings(pos.coords.latitude, pos.coords.longitude),
-              (err) => {
-                console.warn(
-                  "Akses lokasi ditolak/gagal, menggunakan lokasi default.",
-                  err,
-                );
-                fetchTimings(DEFAULT_LAT, DEFAULT_LON);
-              },
-              { timeout: 10000, maximumAge: 3600000 },
-            );
+          // Geocode nama kota ke koordinat via API gratis
+          async function geocodeCity(city) {
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`
+              );
+              const data = await res.json();
+              if (data && data.length > 0) {
+                return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+              }
+            } catch (e) {
+              console.warn("Geocode gagal:", e);
+            }
+            return null;
+          }
+
+          // Prioritas: 1) Kota dari Redis, 2) GPS, 3) Default Jakarta
+          const settings = await fetch("/api/settings").then(r => r.json()).catch(() => ({}));
+          if (settings.prayerCity) {
+            console.log("📍 Menggunakan kota dari dashboard:", settings.prayerCity);
+            const coords = await geocodeCity(settings.prayerCity);
+            if (coords) {
+              fetchTimings(coords.lat, coords.lon);
+            } else {
+              console.warn("Geocode gagal, fallback ke GPS.");
+              useGPS();
+            }
           } else {
-            fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+            useGPS();
+          }
+
+          function useGPS() {
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition(
+                (pos) => fetchTimings(pos.coords.latitude, pos.coords.longitude),
+                (err) => {
+                  console.warn("GPS ditolak, gunakan Jakarta default.", err);
+                  fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+                },
+                { timeout: 10000, maximumAge: 3600000 },
+              );
+            } else {
+              fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+            }
           }
         }
 

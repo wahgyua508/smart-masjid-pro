@@ -180,11 +180,7 @@
           >
             Admin Portal
           </h1>
-          <p
-            class="font-label-md text-label-md text-on-primary/70 mt-1 uppercase tracking-wider"
-          >
-            Masjid Al-Falah
-          </p>
+
         </div>
         <nav class="flex flex-col gap-2 flex-1">
           <a
@@ -322,6 +318,51 @@
           </div>
 
 
+        </div>
+
+
+        <!-- ── PENGATURAN LOKASI WAKTU SHOLAT ── -->
+        <div
+          class="bg-surface-container-lowest rounded-xl p-8 ambient-shadow mb-gutter border border-outline-variant/10"
+        >
+          <div class="flex justify-between items-center mb-6">
+            <h3
+              class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-[20px]">location_on</span
+              >Pengaturan Lokasi Waktu Sholat
+            </h3>
+          </div>
+          <p class="font-body-md text-[14px] text-on-surface-variant mb-4">
+            Masukkan nama kota untuk menentukan waktu sholat yang tampil di display. Kosongkan untuk menggunakan GPS otomatis.
+          </p>
+          <div class="flex gap-3 items-start flex-wrap">
+            <div class="flex-1 min-w-[200px]">
+              <input
+                id="location-input"
+                type="text"
+                placeholder="Contoh: Surabaya, Jakarta, Makassar"
+                class="w-full px-4 py-3 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface font-body-md text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+              />
+              <p class="text-[12px] text-on-surface-variant mt-1 ml-1" id="location-status">Memuat lokasi tersimpan...</p>
+            </div>
+            <button
+              id="save-location"
+              class="px-6 py-3 bg-primary text-on-primary rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors flex items-center gap-2"
+              type="button"
+            >
+              <span class="material-symbols-outlined text-[18px]">save</span>
+              Simpan Lokasi
+            </button>
+            <button
+              id="clear-location"
+              class="px-4 py-3 rounded-lg border border-outline-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-2"
+              type="button"
+            >
+              <span class="material-symbols-outlined text-[18px]">gps_fixed</span>
+              Gunakan GPS
+            </button>
+          </div>
         </div>
 
         <div
@@ -1175,6 +1216,57 @@
           }
           e.target.value = "";
         });
+
+      // ── Lokasi Waktu Sholat ─────────────────────────────
+      async function loadSavedLocation() {
+        try {
+          const data = await fetch("/api/settings").then(r => r.json());
+          const input = document.getElementById("location-input");
+          const status = document.getElementById("location-status");
+          if (data.prayerCity) {
+            input.value = data.prayerCity;
+            status.textContent = `Lokasi aktif: ${data.prayerCity}`;
+          } else {
+            status.textContent = "Menggunakan GPS otomatis";
+          }
+        } catch (e) {
+          document.getElementById("location-status").textContent = "Gagal memuat lokasi.";
+        }
+      }
+
+      document.getElementById("save-location").addEventListener("click", async () => {
+        const city = document.getElementById("location-input").value.trim();
+        if (!city) { showToast("❌ Nama kota tidak boleh kosong."); return; }
+        try {
+          await fetch("/api/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ city }),
+          });
+          document.getElementById("location-status").textContent = `Lokasi aktif: ${city}`;
+          showToast("✅ Lokasi berhasil disimpan! Display akan menyesuaikan waktu sholat.");
+        } catch {
+          showToast("❌ Gagal menyimpan lokasi.");
+        }
+      });
+
+      document.getElementById("clear-location").addEventListener("click", async () => {
+        try {
+          await fetch("/api/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ city: "" }),
+          });
+          document.getElementById("location-input").value = "";
+          document.getElementById("location-status").textContent = "Menggunakan GPS otomatis";
+          showToast("✅ Lokasi direset. Display akan menggunakan GPS.");
+        } catch {
+          showToast("❌ Gagal mereset lokasi.");
+        }
+      });
+
+      loadSavedLocation();
+
     </script>
   </body>
 </html>
