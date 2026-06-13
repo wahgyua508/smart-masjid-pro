@@ -613,7 +613,7 @@
 
       // ── 2. Live Clock & Hijri Tanggal ───────────────────────
 
-      // Data waktu sholat (sinkron dengan display.html, format HH:MM 24-jam)
+      // Data waktu sholat (default sementara, akan diisi otomatis sesuai lokasi)
       const PRAYER_SCHEDULE = [
         { name: "Subuh",   time: "04:35" },
         { name: "Dzuhur",  time: "12:05" },
@@ -621,6 +621,71 @@
         { name: "Maghrib", time: "18:10" },
         { name: "Isya",    time: "19:24" },
       ];
+
+      // --- Ambil Waktu Sholat Otomatis Berdasarkan Lokasi (Metode Kemenag RI) ---
+      function loadPrayerTimes() {
+        const PRAYER_KEYS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+        const today = new Date();
+        const dateStr = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+
+        function applyTimings(timings) {
+          PRAYER_KEYS.forEach((key, i) => {
+            if (timings[key] && PRAYER_SCHEDULE[i]) {
+              PRAYER_SCHEDULE[i].time = timings[key].substring(0, 5);
+            }
+          });
+          updateNextPrayerDashboard();
+        }
+
+        function fetchTimings(lat, lon) {
+          const cacheKey = `prayerTimes_${dateStr}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            try {
+              applyTimings(JSON.parse(cached));
+              return;
+            } catch (e) {
+              /* lanjut fetch ulang jika cache rusak */
+            }
+          }
+          fetch(
+            `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lon}&method=20`,
+          )
+            .then((res) => res.json())
+            .then((data) => {
+              if (data && data.data && data.data.timings) {
+                localStorage.setItem(
+                  cacheKey,
+                  JSON.stringify(data.data.timings),
+                );
+                applyTimings(data.data.timings);
+              }
+            })
+            .catch((err) =>
+              console.error("Gagal mengambil jadwal sholat:", err),
+            );
+        }
+
+        // Lokasi default jika izin lokasi ditolak (Jakarta, Indonesia)
+        const DEFAULT_LAT = -6.2088;
+        const DEFAULT_LON = 106.8456;
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => fetchTimings(pos.coords.latitude, pos.coords.longitude),
+            (err) => {
+              console.warn(
+                "Akses lokasi ditolak/gagal, menggunakan lokasi default.",
+                err,
+              );
+              fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+            },
+            { timeout: 10000, maximumAge: 3600000 },
+          );
+        } else {
+          fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+        }
+      }
 
       function getPrayerMinutes(timeStr) {
         const [h, m] = timeStr.split(":").map(Number);
@@ -688,6 +753,10 @@
       }
       setInterval(updateClock, 1000);
       updateClock();
+
+      // Muat waktu sholat sesuai lokasi pengunjung, refresh tiap 1 jam
+      loadPrayerTimes();
+      setInterval(loadPrayerTimes, 3600000);
 
       document.getElementById("hijri-date").textContent =
         new Date().toLocaleDateString("id-ID", {

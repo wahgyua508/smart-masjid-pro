@@ -557,6 +557,74 @@
           }, 5000);
         }
 
+        // --- Ambil Waktu Sholat Otomatis Berdasarkan Lokasi (Metode Kemenag RI) ---
+        function loadPrayerTimes() {
+          const PRAYER_KEYS = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+          const today = new Date();
+          const dateStr = `${String(today.getDate()).padStart(2, "0")}-${String(today.getMonth() + 1).padStart(2, "0")}-${today.getFullYear()}`;
+
+          function applyTimings(timings) {
+            const cards = document.querySelectorAll(".prayer-card");
+            PRAYER_KEYS.forEach((key, i) => {
+              if (cards[i] && timings[key]) {
+                const timeEl = cards[i].querySelector(".time-el");
+                if (timeEl) timeEl.textContent = timings[key].substring(0, 5);
+              }
+            });
+            updateNextPrayer();
+          }
+
+          function fetchTimings(lat, lon) {
+            const cacheKey = `prayerTimes_${dateStr}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+              try {
+                applyTimings(JSON.parse(cached));
+                return;
+              } catch (e) {
+                /* lanjut fetch ulang jika cache rusak */
+              }
+            }
+            fetch(
+              `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lon}&method=20`,
+            )
+              .then((res) => res.json())
+              .then((data) => {
+                if (data && data.data && data.data.timings) {
+                  localStorage.setItem(
+                    cacheKey,
+                    JSON.stringify(data.data.timings),
+                  );
+                  applyTimings(data.data.timings);
+                }
+              })
+              .catch((err) =>
+                console.error("Gagal mengambil jadwal sholat:", err),
+              );
+          }
+
+          // Lokasi default jika izin lokasi ditolak (Jakarta, Indonesia)
+          const DEFAULT_LAT = -6.2088;
+          const DEFAULT_LON = 106.8456;
+
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) =>
+                fetchTimings(pos.coords.latitude, pos.coords.longitude),
+              (err) => {
+                console.warn(
+                  "Akses lokasi ditolak/gagal, menggunakan lokasi default.",
+                  err,
+                );
+                fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+              },
+              { timeout: 10000, maximumAge: 3600000 },
+            );
+          } else {
+            fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+          }
+        }
+
         // --- Logika Waktu Sholat Berikutnya ---
         function updateNextPrayer() {
           const cards = document.querySelectorAll(".prayer-card");
@@ -652,6 +720,11 @@
 
         updateNextPrayer();
         setInterval(updateNextPrayer, 60000);
+
+        // Muat waktu sholat sesuai lokasi pengunjung, refresh tiap 1 jam
+        // (agar otomatis update saat tanggal berganti)
+        loadPrayerTimes();
+        setInterval(loadPrayerTimes, 3600000);
 
         // --- Polling untuk Update QR Code & Laporan Keuangan ---
         let lastQRPath = null;
