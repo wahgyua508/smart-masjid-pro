@@ -363,6 +363,33 @@
               Gunakan GPS
             </button>
           </div>
+          <!-- Pilihan Metode Perhitungan -->
+          <div class="mt-5 pt-5 border-t border-outline-variant/20">
+            <label class="font-label-md text-[13px] text-on-surface-variant mb-2 block">
+              Metode Perhitungan Waktu Sholat
+            </label>
+            <div class="flex gap-3 items-center flex-wrap">
+              <select
+                id="prayer-method"
+                class="px-4 py-3 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface font-body-md text-[14px] focus:outline-none focus:border-primary transition-colors"
+              >
+                <option value="11">JAKIM Malaysia (Direkomendasikan untuk Indonesia)</option>
+                <option value="20">Kemenag RI / Muhammadiyah</option>
+                <option value="3">Muslim World League (MWL)</option>
+                <option value="2">Islamic Society of North America (ISNA)</option>
+                <option value="1">University of Islamic Sciences, Karachi</option>
+              </select>
+              <button
+                id="save-method"
+                class="px-6 py-3 bg-secondary text-on-secondary rounded-lg font-label-md text-label-md hover:bg-secondary/90 transition-colors flex items-center gap-2"
+                type="button"
+              >
+                <span class="material-symbols-outlined text-[18px]">tune</span>
+                Simpan Metode
+              </button>
+            </div>
+            <p class="text-[12px] text-on-surface-variant mt-2 ml-1" id="method-status">Memuat metode tersimpan...</p>
+          </div>
         </div>
 
         <div
@@ -1265,7 +1292,39 @@
         }
       });
 
+      // ── Metode Perhitungan Waktu Sholat ─────────────────
+      async function loadSavedMethod() {
+        try {
+          const data = await fetch("/api/settings").then(r => r.json());
+          const select = document.getElementById("prayer-method");
+          const status = document.getElementById("method-status");
+          const method = String(data.prayerMethod || 11);
+          select.value = method;
+          status.textContent = `Metode aktif: ${select.options[select.selectedIndex].text}`;
+        } catch (e) {
+          document.getElementById("method-status").textContent = "Gagal memuat metode.";
+        }
+      }
+
+      document.getElementById("save-method").addEventListener("click", async () => {
+        const method = parseInt(document.getElementById("prayer-method").value);
+        const select = document.getElementById("prayer-method");
+        try {
+          await fetch("/api/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ method }),
+          });
+          document.getElementById("method-status").textContent =
+            `Metode aktif: ${select.options[select.selectedIndex].text}`;
+          showToast("✅ Metode perhitungan berhasil disimpan! Display akan menyesuaikan.");
+        } catch {
+          showToast("❌ Gagal menyimpan metode.");
+        }
+      });
+
       loadSavedLocation();
+      loadSavedMethod();
 
     </script>
   </body>

@@ -569,8 +569,9 @@
             updateNextPrayer();
           }
 
-          function fetchTimings(lat, lon) {
-            const cacheKey = `prayerTimes_${dateStr}_${lat.toFixed(2)}_${lon.toFixed(2)}`;
+          function fetchTimings(lat, lon, method) {
+            const calcMethod = method || 11; // 11 = JAKIM (akurat untuk Indonesia)
+            const cacheKey = `prayerTimes_${dateStr}_${lat.toFixed(2)}_${lon.toFixed(2)}_${calcMethod}`;
             const cached = localStorage.getItem(cacheKey);
             if (cached) {
               try {
@@ -581,7 +582,7 @@
               }
             }
             fetch(
-              `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lon}&method=20`,
+              `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${lat}&longitude=${lon}&method=${calcMethod}`,
             )
               .then((res) => res.json())
               .then((data) => {
@@ -620,31 +621,33 @@
 
           // Prioritas: 1) Kota dari Redis, 2) GPS, 3) Default Jakarta
           const settings = await fetch("/api/settings").then(r => r.json()).catch(() => ({}));
+          const prayerMethod = settings.prayerMethod || 11; // default JAKIM (paling akurat untuk Indonesia)
+
           if (settings.prayerCity) {
-            console.log("📍 Menggunakan kota dari dashboard:", settings.prayerCity);
+            console.log("📍 Menggunakan kota dari dashboard:", settings.prayerCity, "| Metode:", prayerMethod);
             const coords = await geocodeCity(settings.prayerCity);
             if (coords) {
-              fetchTimings(coords.lat, coords.lon);
+              fetchTimings(coords.lat, coords.lon, prayerMethod);
             } else {
               console.warn("Geocode gagal, fallback ke GPS.");
-              useGPS();
+              useGPS(prayerMethod);
             }
           } else {
-            useGPS();
+            useGPS(prayerMethod);
           }
 
-          function useGPS() {
+          function useGPS(method) {
             if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
-                (pos) => fetchTimings(pos.coords.latitude, pos.coords.longitude),
+                (pos) => fetchTimings(pos.coords.latitude, pos.coords.longitude, method),
                 (err) => {
                   console.warn("GPS ditolak, gunakan Jakarta default.", err);
-                  fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+                  fetchTimings(DEFAULT_LAT, DEFAULT_LON, method);
                 },
                 { timeout: 10000, maximumAge: 3600000 },
               );
             } else {
-              fetchTimings(DEFAULT_LAT, DEFAULT_LON);
+              fetchTimings(DEFAULT_LAT, DEFAULT_LON, method);
             }
           }
         }

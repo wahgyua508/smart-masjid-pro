@@ -145,18 +145,28 @@ app.post("/api/ticker", async (req, res) => {
 });
 
 
-// ── API: Simpan / hapus kota lokasi waktu sholat ────────
+// ── API: Simpan kota & metode perhitungan waktu sholat ──
 app.post("/api/location", async (req, res) => {
   try {
     const settings = await getSettings();
-    const city = (req.body.city || "").trim();
-    if (city) {
-      settings.prayerCity = city;
-    } else {
-      delete settings.prayerCity;
+
+    // Simpan / hapus kota
+    if (req.body.city !== undefined) {
+      const city = (req.body.city || "").trim();
+      if (city) {
+        settings.prayerCity = city;
+      } else {
+        delete settings.prayerCity;
+      }
     }
+
+    // Simpan metode perhitungan (1,2,3,11,20,dst)
+    if (req.body.method !== undefined) {
+      settings.prayerMethod = parseInt(req.body.method) || 11;
+    }
+
     await saveSettings(settings);
-    res.json({ success: true, prayerCity: city || null });
+    res.json({ success: true, prayerCity: settings.prayerCity || null, prayerMethod: settings.prayerMethod || 11 });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
