@@ -304,15 +304,24 @@
                 Laporan Keuangan Masjid
               </h3>
             </div>
-            <div class="flex-1 relative overflow-hidden">
-              <div
+            <div
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+            >
+              <img
                 id="laporan-image-1"
-                class="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style="display: none"
-              ></div>
+                src="/laporan_keuangan/laporan_keuangan.jpg"
+                alt="Laporan Keuangan"
+                class="w-full h-full object-contain"
+                onerror="
+                  this.style.display = 'none';
+                  document.getElementById(
+                    'laporan-fallback-1',
+                  ).style.display = 'flex';
+                "
+              />
               <div
                 id="laporan-fallback-1"
-                class="absolute inset-0 flex items-center justify-center opacity-40"
+                class="flex-1 flex items-center justify-center opacity-40"
               >
                 <span
                   class="material-symbols-outlined text-7xl text-on-surface-variant"
@@ -334,15 +343,25 @@
                 Jadwal Kajian
               </h3>
             </div>
-            <div class="flex-1 relative overflow-hidden">
-              <div
+            <div
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+            >
+              <img
                 id="laporan-kegiatan-image"
-                class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                src=""
+                alt="Jadwal Kajian"
+                class="w-full h-full object-contain"
                 style="display: none"
-              ></div>
+                onerror="
+                  this.style.display = 'none';
+                  document.getElementById(
+                    'laporan-kegiatan-fallback',
+                  ).style.display = 'flex';
+                "
+              />
               <div
                 id="laporan-kegiatan-fallback"
-                class="absolute inset-0 flex items-center justify-center opacity-40"
+                class="flex-1 flex items-center justify-center opacity-40"
               >
                 <span
                   class="material-symbols-outlined text-7xl text-on-surface-variant"
@@ -748,7 +767,7 @@
               if (img1) {
                 const newSrc = settings.activeReportUrl || "/" + settings.activeReport;
                 console.log("🔄 Update Laporan Slide 1:", newSrc);
-                img1.style.backgroundImage = "url('" + newSrc + "')";
+                img1.src = newSrc;
                 img1.style.display = "block";
                 const fallback1 = document.getElementById("laporan-fallback-1");
                 if (fallback1) fallback1.style.display = "none";
@@ -771,7 +790,7 @@
                 if (kegiatanImg) {
                   const newSrc = settings.activeJadwalUrl || "/" + settings.activeJadwal;
                   console.log("🔄 Update Jadwal Kajian:", newSrc);
-                  kegiatanImg.style.backgroundImage = "url('" + newSrc + "')";
+                  kegiatanImg.src = newSrc;
                   kegiatanImg.style.display = "block";
                   if (kegiatanFallback) kegiatanFallback.style.display = "none";
                   lastJadwal = settings.activeJadwal;
@@ -783,7 +802,7 @@
               if (lastJadwal !== null) {
                 if (kegiatanImg) {
                   kegiatanImg.style.display = "none";
-                  kegiatanImg.style.backgroundImage = "";
+                  kegiatanImg.src = "";
                 }
                 if (kegiatanFallback) kegiatanFallback.style.display = "flex";
                 lastJadwal = null;
