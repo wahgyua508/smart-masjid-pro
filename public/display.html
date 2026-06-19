@@ -295,112 +295,78 @@
         </div>
 
         <div class="flex-1 flex gap-gutter pb-4">
+          <!-- KIRI: Laporan Keuangan (60%) -->
           <div
-            class="flex-1 bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+            class="flex-[6] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
           >
-            <div
-              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-100 z-10"
-            >
-              <div class="px-6 py-3 border-b border-surface-container-high">
-                <h3 class="font-headline-md text-xl text-primary">
-                  Laporan Keuangan Masjid
-                </h3>
-              </div>
-              <div
-                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
-              >
-                <img
-                  id="laporan-image-1"
-                  src="/laporan_keuangan/laporan_keuangan.jpg"
-                  alt="Laporan Keuangan"
-                  class="w-full h-full object-contain"
-                  onerror="
-                    this.style.display = 'none';
-                    document.getElementById(
-                      'laporan-fallback-1',
-                    ).style.display = 'flex';
-                  "
-                />
-                <div
-                  id="laporan-fallback-1"
-                  class="flex-1 flex items-center justify-center opacity-40"
-                >
-                  <span
-                    class="material-symbols-outlined text-7xl text-on-surface-variant"
-                    >monitoring</span
-                  >
-                </div>
-              </div>
+            <div class="px-6 py-3 border-b border-surface-container-high">
+              <h3 class="font-headline-md text-xl text-primary">
+                Laporan Keuangan Masjid
+              </h3>
             </div>
             <div
-              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-0 z-0"
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
             >
-              <div class="px-6 py-3 border-b border-surface-container-high">
-                <h3 class="font-headline-md text-xl text-primary">
-                  Laporan Keuangan Masjid
-                </h3>
-              </div>
+              <img
+                id="laporan-image-1"
+                src="/laporan_keuangan/laporan_keuangan.jpg"
+                alt="Laporan Keuangan"
+                class="w-full h-full object-contain"
+                onerror="
+                  this.style.display = 'none';
+                  document.getElementById(
+                    'laporan-fallback-1',
+                  ).style.display = 'flex';
+                "
+              />
               <div
-                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+                id="laporan-fallback-1"
+                class="flex-1 flex items-center justify-center opacity-40"
               >
-                <img
-                  id="laporan-image-2"
-                  src="/laporan_keuangan/laporan_keuangan.jpg"
-                  alt="Laporan Keuangan"
-                  class="w-full h-full object-contain"
-                  onerror="
-                    this.style.display = 'none';
-                    document.getElementById(
-                      'laporan-fallback-2',
-                    ).style.display = 'flex';
-                  "
-                />
-                <div
-                  id="laporan-fallback-2"
-                  class="flex-1 flex items-center justify-center opacity-40"
+                <span
+                  class="material-symbols-outlined text-7xl text-on-surface-variant"
+                  >monitoring</span
                 >
-                  <span
-                    class="material-symbols-outlined text-7xl text-on-surface-variant"
-                    >monitoring</span
-                  >
-                </div>
               </div>
             </div>
-            <div
-              class="carousel-slide absolute inset-0 flex flex-col transition-opacity duration-1000 opacity-0 z-0"
-            >
-              <div class="px-6 py-3 border-b border-surface-container-high">
-                <h3
-                  id="laporan-kegiatan-title"
-                  class="font-headline-md text-xl text-primary"
-                >
-                  Laporan Kegiatan Masjid
-                </h3>
-              </div>
-              <div
-                class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+          </div>
+
+          <!-- KANAN: Jadwal Kajian (40%) -->
+          <div
+            class="flex-[4] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+          >
+            <div class="px-6 py-3 border-b border-surface-container-high">
+              <h3
+                id="laporan-kegiatan-title"
+                class="font-headline-md text-xl text-primary"
               >
-                <img
-                  id="laporan-kegiatan-image"
-                  src="/laporan_kegiatan/laporan_kegiatan.jpg"
-                  alt="Laporan Kegiatan"
-                  class="w-full h-full object-contain"
-                  onerror="
-                    this.style.display = 'none';
-                    document.getElementById(
-                      'laporan-kegiatan-fallback',
-                    ).style.display = 'flex';
-                  "
-                />
-                <div
-                  id="laporan-kegiatan-fallback"
-                  class="flex-1 flex items-center justify-center opacity-40"
+                Jadwal Kajian
+              </h3>
+            </div>
+            <div
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+            >
+              <img
+                id="laporan-kegiatan-image"
+                src=""
+                alt="Jadwal Kajian"
+                class="w-full h-full object-contain"
+                style="display: none"
+                onerror="
+                  this.style.display = 'none';
+                  document.getElementById(
+                    'laporan-kegiatan-fallback',
+                  ).style.display = 'flex';
+                "
+              />
+              <div
+                id="laporan-kegiatan-fallback"
+                class="flex-1 flex items-center justify-center opacity-40"
+              >
+                <span
+                  class="material-symbols-outlined text-7xl text-on-surface-variant"
+                  >event</span
                 >
-                  <span
-                    class="material-symbols-outlined text-7xl text-on-surface-variant"
-                    >event</span
-                  >
-                </div>
               </div>
             </div>
           </div>
@@ -538,19 +504,6 @@
         }
         setInterval(updateClock, 1000);
         updateClock();
-
-        // --- Logika Transisi Laporan ---
-        const slides = document.querySelectorAll(".carousel-slide");
-        if (slides.length > 0) {
-          let currentSlide = 0;
-          setInterval(() => {
-            slides[currentSlide].classList.remove("opacity-100", "z-10");
-            slides[currentSlide].classList.add("opacity-0", "z-0");
-            currentSlide = (currentSlide + 1) % slides.length;
-            slides[currentSlide].classList.remove("opacity-0", "z-0");
-            slides[currentSlide].classList.add("opacity-100", "z-10");
-          }, 5000);
-        }
 
         // --- Ambil Waktu Sholat Otomatis Berdasarkan Lokasi (Metode Kemenag RI) ---
         async function loadPrayerTimes() {
@@ -757,7 +710,6 @@
         let lastQRPath = null;
         let lastQRLabel = null;
         let lastReport1 = null;
-        let lastReport2 = null;
         let lastJadwal = null;
         let lastTicker = null;
         let lastBackground = null;
@@ -823,23 +775,6 @@
               }
             }
 
-            // ── Update Laporan Keuangan Slide 2 ─────────────────
-            if (
-              settings.activeReport2 &&
-              (settings.activeReport2 !== lastReport2 || lastReport2 === null)
-            ) {
-              const img2 = document.getElementById("laporan-image-2");
-              if (img2) {
-                const newSrc = settings.activeReport2Url || "/" + settings.activeReport2;
-                console.log("🔄 Update Laporan Slide 2:", newSrc);
-                img2.src = newSrc;
-                img2.style.display = "block";
-                const fallback2 = document.getElementById("laporan-fallback-2");
-                if (fallback2) fallback2.style.display = "none";
-                lastReport2 = settings.activeReport2;
-              }
-            }
-
             // ── Update Jadwal Kajian ─────────────────────────────
             const titleEl = document.getElementById("laporan-kegiatan-title");
             const kegiatanImg = document.getElementById(
@@ -849,8 +784,8 @@
               "laporan-kegiatan-fallback",
             );
             if (settings.activeJadwal) {
-              // Ada jadwal aktif: ganti judul dan gambar
-              if (titleEl) titleEl.textContent = "Jadwal Kajian Masjid";
+              // Ada jadwal aktif: tampilkan gambar
+              if (titleEl) titleEl.textContent = "Jadwal Kajian";
               if (settings.activeJadwal !== lastJadwal || lastJadwal === null) {
                 if (kegiatanImg) {
                   const newSrc = settings.activeJadwalUrl || "/" + settings.activeJadwal;
@@ -862,14 +797,14 @@
                 }
               }
             } else {
-              // Tidak ada jadwal aktif: kembalikan ke Laporan Kegiatan default
-              if (titleEl) titleEl.textContent = "Laporan Kegiatan Masjid";
+              // Tidak ada jadwal aktif: tampilkan placeholder ikon
+              if (titleEl) titleEl.textContent = "Jadwal Kajian";
               if (lastJadwal !== null) {
                 if (kegiatanImg) {
-                  kegiatanImg.src = "/laporan_kegiatan/laporan_kegiatan.jpg";
-                  kegiatanImg.style.display = "block";
-                  if (kegiatanFallback) kegiatanFallback.style.display = "none";
+                  kegiatanImg.style.display = "none";
+                  kegiatanImg.src = "";
                 }
+                if (kegiatanFallback) kegiatanFallback.style.display = "flex";
                 lastJadwal = null;
               }
             }

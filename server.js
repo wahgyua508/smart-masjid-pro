@@ -33,7 +33,6 @@ async function getSettings() {
       qrLabel: "SCAN TO DONATE",
       activeBackground: null,
       activeReport: null,
-      activeReport2: null,
       activeJadwal: null,
     };
   }
@@ -280,10 +279,8 @@ app.post("/api/upload-report", upload.single("reportImage"), async (req, res) =>
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     const settings = await getSettings();
-    // Lindungi kedua laporan yang sedang aktif
     const activeIds = [
       settings.activeReport ? `masjid/laporan_keuangan/${settings.activeReport.split("/").pop()}` : null,
-      settings.activeReport2 ? `masjid/laporan_keuangan/${settings.activeReport2.split("/").pop()}` : null,
     ].filter(Boolean);
 
     await enforceLimit("laporan_keuangan", activeIds);
@@ -306,18 +303,13 @@ app.get("/api/reports", async (req, res) => {
   }
 });
 
-// ── API: Set laporan keuangan aktif (slide 1 atau slide 2)
+// ── API: Set laporan keuangan aktif ──────────────────────
 app.post("/api/report", async (req, res) => {
   try {
     const settings = await getSettings();
-    const { path: reportPath, url: reportUrl, slide } = req.body;
-    if (slide === 2) {
-      settings.activeReport2 = reportPath;
-      settings.activeReport2Url = reportUrl;
-    } else {
-      settings.activeReport = reportPath;
-      settings.activeReportUrl = reportUrl;
-    }
+    const { path: reportPath, url: reportUrl } = req.body;
+    settings.activeReport = reportPath;
+    settings.activeReportUrl = reportUrl;
     await saveSettings(settings);
     res.json({ success: true });
   } catch (e) {
@@ -332,7 +324,7 @@ app.delete("/api/report", async (req, res) => {
     if (!reportPath) return res.status(400).json({ error: "No path provided" });
 
     const settings = await getSettings();
-    if (settings.activeReport === reportPath || settings.activeReport2 === reportPath) {
+    if (settings.activeReport === reportPath) {
       return res.status(400).json({ error: "Tidak bisa menghapus laporan yang sedang aktif." });
     }
 
@@ -347,19 +339,8 @@ app.delete("/api/report", async (req, res) => {
 app.post("/api/report/discard", async (req, res) => {
   try {
     const settings = await getSettings();
-    const { slide } = req.body;
-    if (slide === 2) {
-      delete settings.activeReport2;
-      delete settings.activeReport2Url;
-    } else if (slide === 1) {
-      delete settings.activeReport;
-      delete settings.activeReportUrl;
-    } else {
-      delete settings.activeReport;
-      delete settings.activeReportUrl;
-      delete settings.activeReport2;
-      delete settings.activeReport2Url;
-    }
+    delete settings.activeReport;
+    delete settings.activeReportUrl;
     await saveSettings(settings);
     res.json({ success: true });
   } catch (e) {

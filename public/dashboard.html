@@ -535,13 +535,10 @@
             </div>
           </div>
 
-          <!-- Slide 1 -->
-          <div class="mb-6">
+          <!-- Manajemen Laporan Keuangan -->
+          <div>
             <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] font-bold">1</span>
-                <h4 class="font-label-md text-[13px] text-on-surface uppercase tracking-wider">Slide 1 — Laporan Keuangan</h4>
-              </div>
+              <h4 class="font-label-md text-[13px] text-on-surface uppercase tracking-wider">Laporan Keuangan Aktif</h4>
               <button
                 id="discard-slide-1"
                 class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-[13px] hover:bg-primary/5 transition-colors flex items-center gap-1"
@@ -553,35 +550,6 @@
             </div>
             <div
               id="report-grid-1"
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            >
-              <div class="col-span-4 text-center py-8 text-on-surface-variant font-body-md text-[14px]">
-                Memuat daftar laporan keuangan...
-              </div>
-            </div>
-          </div>
-
-          <!-- Divider -->
-          <div class="border-t border-outline-variant/30 my-6"></div>
-
-          <!-- Slide 2 -->
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-secondary text-on-secondary text-[12px] font-bold">2</span>
-                <h4 class="font-label-md text-[13px] text-on-surface uppercase tracking-wider">Slide 2 — Laporan Keuangan</h4>
-              </div>
-              <button
-                id="discard-slide-2"
-                class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-[13px] hover:bg-primary/5 transition-colors flex items-center gap-1"
-                type="button"
-              >
-                <span class="material-symbols-outlined text-[16px]">restart_alt</span>
-                Discard Changes
-              </button>
-            </div>
-            <div
-              id="report-grid-2"
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               <div class="col-span-4 text-center py-8 text-on-surface-variant font-body-md text-[14px]">
@@ -997,7 +965,7 @@
       });
 
       // ── 6. Modul Pengelola Laporan Keuangan (Slide 1 & 2) ──
-      function renderReportGrid(gridId, reports, activePath, slideNum) {
+      function renderReportGrid(gridId, reports, activePath) {
         const grid = document.getElementById(gridId);
         grid.innerHTML = "";
 
@@ -1016,11 +984,11 @@
               : "border-outline-variant/30 hover:border-primary/50"
           }`;
           card.innerHTML = `
-            ${isActive ? `<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold z-10 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">check_circle</span> AKTIF SLIDE ${slideNum}</div>` : ""}
+            ${isActive ? `<div class="absolute top-3 left-3 bg-primary text-on-primary text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold z-10 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">check_circle</span> Active</div>` : ""}
             ${!isActive ? `<button class="delete-report-btn absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-error/90 text-on-error flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-error shadow" data-path="${item.path}" data-public-id="${item.public_id||''}" title="Hapus gambar ini"><span class="material-symbols-outlined text-[16px]">delete</span></button>` : ""}
             <div class="aspect-[4/3] w-full bg-surface-container-highest relative">
               <img src="${item.url}" alt="${name}" class="w-full h-full object-cover"/>
-              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-report-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${item.path}" data-url="${item.url}" data-slide="${slideNum}">Aktifkan Slide ${slideNum}</button></div>` : ""}
+              ${!isActive ? `<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button class="set-report-btn px-4 py-2 bg-surface-container-lowest text-primary rounded font-label-md text-[13px] hover:bg-primary hover:text-on-primary transition-colors" data-path="${item.path}" data-url="${item.url}">Set Active</button></div>` : ""}
             </div>
             <div class="p-3 bg-surface-container-lowest"><span class="font-label-md text-[13px] ${isActive ? "text-on-surface" : "text-on-surface-variant"} truncate block">${name}</span></div>`;
           grid.appendChild(card);
@@ -1036,10 +1004,10 @@
                 body: JSON.stringify({
                   path: btn.dataset.path,
                   url: btn.dataset.url,
-                  slide: parseInt(btn.dataset.slide),
+                  slide: 1,
                 }),
               });
-              showToast(`✅ Laporan keuangan Slide ${btn.dataset.slide} berhasil diperbarui!`);
+              showToast("✅ Laporan keuangan berhasil diperbarui!");
               loadReports();
             } catch {
               showToast("❌ Gagal memperbarui laporan.");
@@ -1075,15 +1043,14 @@
             fetch("/api/reports").then((r) => r.json()),
             fetch("/api/settings").then((r) => r.json()),
           ]);
-          renderReportGrid("report-grid-1", reports, settings.activeReport, 1);
-          renderReportGrid("report-grid-2", reports, settings.activeReport2, 2);
+          renderReportGrid("report-grid-1", reports, settings.activeReport);
         } catch (e) {
           console.error("Gagal sinkronisasi data laporan keuangan:", e);
         }
       }
       loadReports();
 
-      // Tombol Discard Changes (per slide)
+      // Tombol Discard Changes
       document.getElementById("discard-slide-1").addEventListener("click", async () => {
         try {
           await fetch("/api/report/discard", {
@@ -1091,24 +1058,10 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ slide: 1 }),
           });
-          showToast("Perubahan Slide 1 dibatalkan.");
+          showToast("Perubahan dibatalkan.");
           loadReports();
         } catch {
-          showToast("❌ Gagal mereset Slide 1.");
-        }
-      });
-
-      document.getElementById("discard-slide-2").addEventListener("click", async () => {
-        try {
-          await fetch("/api/report/discard", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ slide: 2 }),
-          });
-          showToast("Perubahan Slide 2 dibatalkan.");
-          loadReports();
-        } catch {
-          showToast("❌ Gagal mereset Slide 2.");
+          showToast("❌ Gagal mereset laporan.");
         }
       });
 
