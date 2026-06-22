@@ -262,7 +262,7 @@
       </div>
 
       <div class="flex-1 flex flex-col h-full">
-        <div class="w-full flex justify-center mb-2">
+        <div class="w-full flex items-center justify-center gap-gutter mb-2 relative">
           <div
             class="bg-surface-container-lowest/85 backdrop-blur-xl rounded-xl shadow-lg border border-surface-container-highest w-full text-center -mt-4 p-2 max-w-md"
           >
@@ -292,12 +292,48 @@
               --
             </p>
           </div>
+
+          <!-- QR Amal kecil, pojok kanan atas sejajar jam -->
+          <div
+            class="absolute right-0 -top-4 bg-primary text-on-primary rounded-xl px-4 py-3 flex items-center gap-3 shadow-lg shrink-0"
+          >
+            <div
+              class="bg-surface-container-lowest p-1.5 rounded-md w-16 h-16 flex items-center justify-center shadow-inner shrink-0 overflow-hidden"
+            >
+              <img
+                id="qr-image"
+                src="/qrcodes/qr_amal.png"
+                alt="QR Donasi"
+                class="w-full h-full object-contain"
+                onerror="
+                  this.style.display = 'none';
+                  document.getElementById('qr-fallback').style.display = 'flex';
+                "
+              />
+              <span
+                id="qr-fallback"
+                class="material-symbols-outlined text-3xl text-on-surface leading-none"
+                style="display: none"
+                >qr_code_2</span
+              >
+            </div>
+            <div>
+              <span
+                id="qr-title"
+                class="font-headline-md text-sm font-bold block text-secondary-fixed leading-tight"
+                >QR AMAL</span
+              >
+              <span class="font-body-md text-[10px] text-on-primary/90 block"
+                >Scan to Donate</span
+              >
+            </div>
+          </div>
         </div>
 
         <div class="flex-1 flex gap-gutter pb-4">
           <!-- KIRI: Laporan Keuangan (60%) -->
           <div
-            class="flex-[6] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+            class="flex-[55] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
           >
             <div class="px-6 py-3 border-b border-surface-container-high">
               <h3 class="font-headline-md text-xl text-primary">
@@ -333,7 +369,7 @@
 
           <!-- KANAN: Jadwal Kajian (40%) -->
           <div
-            class="flex-[4] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+            class="flex-[45] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
           >
             <div class="px-6 py-3 border-b border-surface-container-high">
               <h3
@@ -373,46 +409,6 @@
         </div>
       </div>
 
-      <div class="w-[200px] flex flex-col items-end">
-        <div
-          class="bg-primary text-on-primary rounded-xl p-4 flex flex-col items-center justify-between shadow-xl relative overflow-hidden w-full aspect-[3/4]"
-        >
-          <div
-            class="absolute top-0 right-0 w-24 h-24 bg-primary-container rounded-bl-full opacity-50 z-0"
-          ></div>
-          <div class="text-center relative z-10 w-full">
-            <span
-              id="qr-title"
-              class="font-headline-md text-xl font-bold block text-secondary-fixed"
-              >QR AMAL</span
-            >
-            <span class="font-body-md text-xs text-on-primary/90 block"
-              >Scan to Donate</span
-            >
-          </div>
-          <div
-            class="bg-surface-container-lowest p-2 rounded-lg w-3/4 aspect-square flex items-center justify-center shadow-inner relative z-10 my-2 overflow-hidden"
-          >
-            <img
-              id="qr-image"
-              src="/qrcodes/qr_amal.png"
-              alt="QR Donasi"
-              class="w-full h-full object-contain"
-              onerror="
-                this.style.display = 'none';
-                document.getElementById('qr-fallback').style.display = 'block';
-              "
-            />
-            <span
-              id="qr-fallback"
-              class="material-symbols-outlined text-6xl text-on-surface leading-none"
-              style="display: none"
-              >qr_code_2</span
-            >
-          </div>
-
-        </div>
-      </div>
     </main>
 
     <div
