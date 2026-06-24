@@ -261,7 +261,7 @@
         </div>
       </div>
 
-      <div class="flex-1 flex flex-col h-full">
+      <div class="flex-1 min-h-0 flex flex-col h-full">
         <div class="w-full flex items-center justify-center gap-gutter mb-2 relative">
           <div
             class="bg-surface-container-lowest/85 backdrop-blur-xl rounded-xl shadow-lg border border-surface-container-highest w-full text-center -mt-4 p-2 max-w-md"
@@ -330,10 +330,10 @@
           </div>
         </div>
 
-        <div class="flex-1 flex gap-gutter pb-4">
+        <div class="flex-1 min-h-0 flex gap-gutter pb-4">
           <!-- KIRI: Laporan Keuangan (60%) -->
           <div
-            class="flex-[55] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+            class="flex-[55] min-w-0 bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
           >
             <div class="px-6 py-3 border-b border-surface-container-high">
               <h3 class="font-headline-md text-2xl text-primary text-center">
@@ -341,13 +341,13 @@
               </h3>
             </div>
             <div
-              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden min-w-0 min-h-0"
             >
               <img
                 id="laporan-image-1"
                 src="/laporan_keuangan/laporan_keuangan.jpg"
                 alt="Laporan Keuangan"
-                class="w-full h-full object-contain"
+                class="max-w-full max-h-full w-auto h-auto object-contain"
                 onerror="
                   this.style.display = 'none';
                   document.getElementById(
@@ -369,7 +369,7 @@
 
           <!-- KANAN: Jadwal Kajian (40%) -->
           <div
-            class="flex-[45] bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
+            class="flex-[45] min-w-0 bg-surface-container-lowest/70 backdrop-blur-md rounded-xl border border-surface-container-highest flex flex-col shadow-sm relative overflow-hidden"
           >
             <div class="px-6 py-3 border-b border-surface-container-high">
               <h3
@@ -380,13 +380,13 @@
               </h3>
             </div>
             <div
-              class="flex-1 flex items-center justify-center p-4 overflow-hidden"
+              class="flex-1 flex items-center justify-center p-4 overflow-hidden min-w-0 min-h-0"
             >
               <img
                 id="laporan-kegiatan-image"
                 src=""
                 alt="Jadwal Kajian"
-                class="w-full h-full object-contain"
+                class="max-w-full max-h-full w-auto h-auto object-contain"
                 style="display: none"
                 onerror="
                   this.style.display = 'none';
