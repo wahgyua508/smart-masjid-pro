@@ -1055,7 +1055,7 @@
       loadReports();
 
       // Tombol Discard Changes
-      document.getElementById("discard-slide-1").addEventListener("click", async () => {
+      document.getElementById("discard-slide-1")?.addEventListener("click", async () => {
         try {
           await fetch("/api/report/discard", {
             method: "POST",
@@ -1152,7 +1152,7 @@
       loadJadwals();
 
       // Tombol Discard Changes jadwal
-      document.getElementById("discard-jadwal").addEventListener("click", async () => {
+      document.getElementById("discard-jadwal")?.addEventListener("click", async () => {
         try {
           await fetch("/api/jadwal/discard", {
             method: "POST",
@@ -1186,29 +1186,33 @@
         const city = document.getElementById("location-input").value.trim();
         if (!city) { showToast("❌ Nama kota tidak boleh kosong."); return; }
         try {
-          await fetch("/api/location", {
+          const res = await fetch("/api/location", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ city }),
           });
+          if (!res.ok) throw new Error("Server merespons error: " + res.status);
           document.getElementById("location-status").textContent = `Lokasi aktif: ${city}`;
           showToast("✅ Lokasi berhasil disimpan! Display akan menyesuaikan waktu sholat.");
-        } catch {
+        } catch (e) {
+          console.error("Gagal menyimpan lokasi:", e);
           showToast("❌ Gagal menyimpan lokasi.");
         }
       });
 
       document.getElementById("clear-location").addEventListener("click", async () => {
         try {
-          await fetch("/api/location", {
+          const res = await fetch("/api/location", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ city: "" }),
           });
+          if (!res.ok) throw new Error("Server merespons error: " + res.status);
           document.getElementById("location-input").value = "";
           document.getElementById("location-status").textContent = "Menggunakan GPS otomatis";
           showToast("✅ Lokasi direset. Display akan menggunakan GPS.");
-        } catch {
+        } catch (e) {
+          console.error("Gagal mereset lokasi:", e);
           showToast("❌ Gagal mereset lokasi.");
         }
       });
@@ -1231,15 +1235,17 @@
         const method = parseInt(document.getElementById("prayer-method").value);
         const select = document.getElementById("prayer-method");
         try {
-          await fetch("/api/location", {
+          const res = await fetch("/api/location", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ method }),
           });
+          if (!res.ok) throw new Error("Server merespons error: " + res.status);
           document.getElementById("method-status").textContent =
             `Metode aktif: ${select.options[select.selectedIndex].text}`;
           showToast("✅ Metode perhitungan berhasil disimpan! Display akan menyesuaikan.");
-        } catch {
+        } catch (e) {
+          console.error("Gagal menyimpan metode:", e);
           showToast("❌ Gagal menyimpan metode.");
         }
       });
