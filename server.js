@@ -11,418 +11,361 @@ const PORT = process.env.PORT || 3000;
 // ── Konfigurasi Cloudinary ────────────────────────────────
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ── Konfigurasi Upstash Redis ─────────────────────────────
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
+  url:   process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// ── Batas maksimal gambar per kategori ───────────────────
+// ── Webhook Secret (opsional, direkomendasikan) ───────────
+const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "";
+
 const MAX_IMAGES = 3;
 
-// ── Helper: ambil settings dari Redis ────────────────────
+// ────────────────────────────────────────────────────────────
+// HELPERS Redis
+// ────────────────────────────────────────────────────────────
 async function getSettings() {
   const data = await redis.get("masjid:settings");
-  if (!data) {
-    return {
-      activeQR: null,
-      qrLabel: "SCAN TO DONATE",
-      activeBackground: null,
-      activeReport: null,
-      activeJadwal: null,
-    };
-  }
+  if (!data) return { activeQR: null, qrLabel: "SCAN TO DONATE", activeBackground: null, activeReport: null, activeJadwal: null };
   return typeof data === "string" ? JSON.parse(data) : data;
 }
-
 async function saveSettings(settings) {
   await redis.set("masjid:settings", JSON.stringify(settings));
 }
 
-// ── Helper: ambil content (ticker) dari Redis ─────────────
 async function getContent() {
   const data = await redis.get("masjid:content");
   if (!data) return { ticker: "AYO RAJIN BERIBADAH DAN BERDONASI" };
   return typeof data === "string" ? JSON.parse(data) : data;
 }
-
 async function saveContent(content) {
   await redis.set("masjid:content", JSON.stringify(content));
 }
 
-// ── Helper: daftar gambar dari Cloudinary per folder ──────
+// ────────────────────────────────────────────────────────────
+// HELPERS Cloudinary
+// ────────────────────────────────────────────────────────────
 async function listCloudinaryImages(folder) {
-  const result = await cloudinary.api.resources({
-    type: "upload",
-    prefix: `masjid/${folder}/`,
-    max_results: 100,
-  });
-  // Urutkan dari yang terlama (created_at ascending)
-  const sorted = result.resources.sort(
-    (a, b) => new Date(a.created_at) - new Date(b.created_at)
-  );
-  return sorted.map((r) => ({
-    path: `${folder}/${r.public_id.split("/").pop()}`,
-    url: r.secure_url,
-    public_id: r.public_id,
-    created_at: r.created_at,
-  }));
+  const result = await cloudinary.api.resources({ type: "upload", prefix: `masjid/${folder}/`, max_results: 100 });
+  const sorted = result.resources.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  return sorted.map(r => ({ path: `${folder}/${r.public_id.split("/").pop()}`, url: r.secure_url, public_id: r.public_id, created_at: r.created_at }));
 }
 
-// ── Helper: hapus gambar terlama jika melebihi MAX_IMAGES ─
-// activePublicIds: public_id gambar yang sedang aktif (tidak boleh dihapus)
 async function enforceLimit(folder, activePublicIds = []) {
   try {
     const images = await listCloudinaryImages(folder);
-    if (images.length < MAX_IMAGES) return; // masih di bawah limit
-
-    // Butuh 1 slot untuk gambar baru, hitung kelebihan
+    if (images.length < MAX_IMAGES) return;
     const excess = images.length - MAX_IMAGES + 1;
-    const toDelete = images
-      .filter((img) => !activePublicIds.includes(img.public_id))
-      .slice(0, excess); // ambil yang paling lama
-
-    for (const img of toDelete) {
-      await cloudinary.uploader.destroy(img.public_id);
-      console.log(`🗑️ Auto-deleted old image: ${img.public_id}`);
-    }
-  } catch (e) {
-    console.error("enforceLimit error:", e.message);
-  }
+    const toDelete = images.filter(img => !activePublicIds.includes(img.public_id)).slice(0, excess);
+    for (const img of toDelete) { await cloudinary.uploader.destroy(img.public_id); console.log(`🗑️ Auto-deleted: ${img.public_id}`); }
+  } catch (e) { console.error("enforceLimit error:", e.message); }
 }
 
-// ── Helper: upload buffer ke Cloudinary ──────────────────
 function uploadToCloudinary(buffer, folder, filename) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: `masjid/${folder}`,
-        public_id: filename,
-        overwrite: true,
-        resource_type: "image",
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
+      { folder: `masjid/${folder}`, public_id: filename, overwrite: true, resource_type: "image" },
+      (error, result) => { if (error) reject(error); else resolve(result); }
     );
     stream.end(buffer);
   });
 }
 
+// ────────────────────────────────────────────────────────────
+// MIDDLEWARE
+// ────────────────────────────────────────────────────────────
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(express.static(path.join(__dirname, "public")));
-
-// Multer pakai memoryStorage — file disimpan di RAM lalu dikirim ke Cloudinary
 const upload = multer({ storage: multer.memoryStorage() });
 
-// ── API: Baca semua setting ──────────────────────────────
+// Middleware validasi webhook secret (jika dikonfigurasi)
+function checkWebhookSecret(req, res, next) {
+  if (!WEBHOOK_SECRET) return next(); // skip jika tidak diset
+  const secret = req.headers["x-webhook-secret"] || req.body?.secret;
+  if (secret !== WEBHOOK_SECRET) return res.status(401).json({ error: "Unauthorized" });
+  next();
+}
+
+// ────────────────────────────────────────────────────────────
+// API: Baca semua settings (dipakai display.html polling)
+// ────────────────────────────────────────────────────────────
 app.get("/api/settings", async (req, res) => {
   try {
     const [settings, content] = await Promise.all([getSettings(), getContent()]);
-    res.json({ ...settings, ...content });
+
+    // Ambil data tabel dari Redis (jika ada dari webhook)
+    const financeRaw = await redis.get("masjid:finance");
+    const kajianRaw  = await redis.get("masjid:kajian");
+
+    const financeData = financeRaw ? (typeof financeRaw === "string" ? JSON.parse(financeRaw) : financeRaw) : null;
+    const kajianData  = kajianRaw  ? (typeof kajianRaw  === "string" ? JSON.parse(kajianRaw)  : kajianRaw)  : null;
+
+    res.json({
+      ...settings,
+      ...content,
+      // Data tabel keuangan dari Google Sheet
+      financeRows:      financeData?.rows      || [],
+      financeHeaders:   financeData?.headers   || [],
+      financeUpdatedAt: financeData?.updatedAt || null,
+      financeETag:      financeData?.etag      || null,
+      // Data tabel kajian dari Google Sheet
+      kajianRows:       kajianData?.rows       || [],
+      kajianHeaders:    kajianData?.headers    || [],
+      kajianUpdatedAt:  kajianData?.updatedAt  || null,
+      kajianETag:       kajianData?.etag       || null,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// ── API: Update teks ticker ──────────────────────────────
-app.post("/api/ticker", async (req, res) => {
+// ────────────────────────────────────────────────────────────
+// WEBHOOK: Google Apps Script kirim data Keuangan
+//
+// POST /api/webhook/finance
+// Header: x-webhook-secret: <secret>  (opsional tapi direkomendasikan)
+// Body (JSON):
+// {
+//   "rows": [
+//     { "tanggal": "01/07/2025", "keterangan": "Infaq Jumat", "masuk": 500000, "keluar": 0, "saldo": 2500000 },
+//     ...
+//   ]
+// }
+// ────────────────────────────────────────────────────────────
+app.post("/api/webhook/finance", checkWebhookSecret, async (req, res) => {
   try {
-    const content = await getContent();
-    content.ticker = req.body.ticker;
-    await saveContent(content);
-    res.json({ success: true });
+    const { rows, headers } = req.body;
+    if (!Array.isArray(rows)) return res.status(400).json({ error: "rows harus array" });
+
+    const etag = Date.now().toString();
+    const payload = { rows, headers: headers || [], updatedAt: new Date().toISOString(), etag };
+    await redis.set("masjid:finance", JSON.stringify(payload));
+
+    console.log(`💰 Finance data updated: ${rows.length} baris`);
+    res.json({ success: true, rows: rows.length, updatedAt: payload.updatedAt });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
+// ────────────────────────────────────────────────────────────
+// WEBHOOK: Google Apps Script kirim data Jadwal Kajian
+//
+// POST /api/webhook/kajian
+// Header: x-webhook-secret: <secret>
+// Body (JSON):
+// {
+//   "rows": [
+//     { "hari": "Minggu, 06/07/2025", "waktu": "08:00 - 10:00", "materi": "Tafsir Juz Amma", "ustadz": "Ust. Fauzan", "tempat": "Aula Utama" },
+//     ...
+//   ]
+// }
+// ────────────────────────────────────────────────────────────
+app.post("/api/webhook/kajian", checkWebhookSecret, async (req, res) => {
+  try {
+    const { rows, headers } = req.body;
+    if (!Array.isArray(rows)) return res.status(400).json({ error: "rows harus array" });
 
-// ── API: Simpan kota & metode perhitungan waktu sholat ──
+    const etag = Date.now().toString();
+    const payload = { rows, headers: headers || [], updatedAt: new Date().toISOString(), etag };
+    await redis.set("masjid:kajian", JSON.stringify(payload));
+
+    console.log(`📅 Kajian data updated: ${rows.length} baris`);
+    res.json({ success: true, rows: rows.length, updatedAt: payload.updatedAt });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ────────────────────────────────────────────────────────────
+// WEBHOOK GABUNGAN (alternatif — 1 sheet kirim keduanya)
+//
+// POST /api/webhook/sheets
+// Body: { "finance": { "rows": [...] }, "kajian": { "rows": [...] } }
+// ────────────────────────────────────────────────────────────
+app.post("/api/webhook/sheets", checkWebhookSecret, async (req, res) => {
+  try {
+    const results = {};
+    if (req.body.finance?.rows) {
+      const { rows, headers } = req.body.finance;
+      await redis.set("masjid:finance", JSON.stringify({ rows, headers: headers || [], updatedAt: new Date().toISOString(), etag: Date.now().toString() }));
+      results.finance = rows.length;
+    }
+    if (req.body.kajian?.rows) {
+      const { rows, headers } = req.body.kajian;
+      await redis.set("masjid:kajian", JSON.stringify({ rows, headers: headers || [], updatedAt: new Date().toISOString(), etag: Date.now().toString() }));
+      results.kajian = rows.length;
+    }
+    res.json({ success: true, ...results });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ────────────────────────────────────────────────────────────
+// API: Reset data tabel (dari dashboard admin)
+// ────────────────────────────────────────────────────────────
+app.delete("/api/finance", async (req, res) => {
+  try { await redis.del("masjid:finance"); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/api/kajian", async (req, res) => {
+  try { await redis.del("masjid:kajian"); res.json({ success: true }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ────────────────────────────────────────────────────────────
+// API YANG SUDAH ADA (tidak berubah)
+// ────────────────────────────────────────────────────────────
+app.post("/api/ticker", async (req, res) => {
+  try { const c=await getContent(); c.ticker=req.body.ticker; await saveContent(c); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
+});
+
 app.post("/api/location", async (req, res) => {
   try {
-    const settings = await getSettings();
-
-    // Simpan / hapus kota
-    if (req.body.city !== undefined) {
-      const city = (req.body.city || "").trim();
-      if (city) {
-        settings.prayerCity = city;
-      } else {
-        delete settings.prayerCity;
-      }
-    }
-
-    // Simpan metode perhitungan (1,2,3,11,20,dst)
-    if (req.body.method !== undefined) {
-      settings.prayerMethod = parseInt(req.body.method) || 11;
-    }
-
-    await saveSettings(settings);
-    res.json({ success: true, prayerCity: settings.prayerCity || null, prayerMethod: settings.prayerMethod || 11 });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    const s=await getSettings();
+    if(req.body.city!==undefined){ const c=(req.body.city||"").trim(); if(c) s.prayerCity=c; else delete s.prayerCity; }
+    if(req.body.method!==undefined) s.prayerMethod=parseInt(req.body.method)||11;
+    await saveSettings(s);
+    res.json({success:true, prayerCity:s.prayerCity||null, prayerMethod:s.prayerMethod||11});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Ganti background aktif ─────────────────────────
 app.post("/api/background", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    settings.activeBackground = req.body.path;
-    settings.activeBackgroundUrl = req.body.url;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); s.activeBackground=req.body.path; s.activeBackgroundUrl=req.body.url; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Upload background baru ke Cloudinary ───────────
-// Auto-hapus gambar terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-background", upload.single("bgImage"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-    // Ambil public_id background yang sedang aktif agar tidak terhapus
-    const settings = await getSettings();
-    const activeIds = settings.activeBackground
-      ? [`masjid/uploads/${settings.activeBackground.split("/").pop()}`]
-      : [];
-
-    // Hapus yang terlama jika melebihi limit
-    await enforceLimit("uploads", activeIds);
-
-    const filename = Date.now();
-    const result = await uploadToCloudinary(req.file.buffer, "uploads", filename);
-    res.json({ success: true, path: `uploads/${filename}`, url: result.secure_url });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    if(!req.file) return res.status(400).json({error:"No file uploaded"});
+    const s=await getSettings();
+    const activeIds=s.activeBackground?[`masjid/uploads/${s.activeBackground.split("/").pop()}`]:[];
+    await enforceLimit("uploads",activeIds);
+    const fn=Date.now();
+    const result=await uploadToCloudinary(req.file.buffer,"uploads",fn);
+    res.json({success:true,path:`uploads/${fn}`,url:result.secure_url});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Daftar background dari Cloudinary ───────────────
 app.get("/api/backgrounds", async (req, res) => {
-  try {
-    const files = await listCloudinaryImages("uploads");
-    res.json(files);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { res.json(await listCloudinaryImages("uploads")); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Hapus background dari Cloudinary ────────────────
 app.delete("/api/background", async (req, res) => {
   try {
-    const { path: bgPath, public_id } = req.body;
-    if (!bgPath) return res.status(400).json({ error: "No path provided" });
-
-    const settings = await getSettings();
-    if (settings.activeBackground === bgPath) {
-      return res.status(400).json({ error: "Tidak bisa menghapus background yang sedang aktif." });
-    }
-
-    if (public_id) await cloudinary.uploader.destroy(public_id);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    const {path:p,public_id}=req.body;
+    if(!p) return res.status(400).json({error:"No path"});
+    const s=await getSettings();
+    if(s.activeBackground===p) return res.status(400).json({error:"Tidak bisa hapus background aktif."});
+    if(public_id) await cloudinary.uploader.destroy(public_id);
+    res.json({success:true});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Discard / reset background aktif ───────────────
 app.post("/api/background/discard", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    delete settings.activeBackground;
-    delete settings.activeBackgroundUrl;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); delete s.activeBackground; delete s.activeBackgroundUrl; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Upload & set QR Code ke Cloudinary ──────────────
-// QR hanya 1 aktif — auto-hapus QR lama saat upload baru
 app.post("/api/qr", upload.single("qrImage"), async (req, res) => {
   try {
-    const settings = await getSettings();
-    if (req.file) {
-      // Hapus QR lama dari Cloudinary jika ada
-      if (settings.activeQR) {
-        const oldPublicId = `masjid/qrcodes/${settings.activeQR.split("/").pop()}`;
-        await cloudinary.uploader.destroy(oldPublicId).catch(() => {});
-      }
-      const filename = Date.now();
-      const result = await uploadToCloudinary(req.file.buffer, "qrcodes", filename);
-      settings.activeQR = `qrcodes/${filename}`;
-      settings.activeQRUrl = result.secure_url;
+    const s=await getSettings();
+    if(req.file){
+      if(s.activeQR){ const oldId=`masjid/qrcodes/${s.activeQR.split("/").pop()}`; await cloudinary.uploader.destroy(oldId).catch(()=>{}); }
+      const fn=Date.now();
+      const result=await uploadToCloudinary(req.file.buffer,"qrcodes",fn);
+      s.activeQR=`qrcodes/${fn}`; s.activeQRUrl=result.secure_url;
     }
-    settings.qrLabel = req.body.label || settings.qrLabel;
-    await saveSettings(settings);
-    res.json({ success: true, path: settings.activeQR, url: settings.activeQRUrl });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    s.qrLabel=req.body.label||s.qrLabel;
+    await saveSettings(s);
+    res.json({success:true,path:s.activeQR,url:s.activeQRUrl});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Upload laporan keuangan ke Cloudinary ───────────
-// Auto-hapus laporan terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-report", upload.single("reportImage"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-    const settings = await getSettings();
-    const activeIds = [
-      settings.activeReport ? `masjid/laporan_keuangan/${settings.activeReport.split("/").pop()}` : null,
-    ].filter(Boolean);
-
-    await enforceLimit("laporan_keuangan", activeIds);
-
-    const filename = Date.now();
-    const result = await uploadToCloudinary(req.file.buffer, "laporan_keuangan", filename);
-    res.json({ success: true, path: `laporan_keuangan/${filename}`, url: result.secure_url });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    if(!req.file) return res.status(400).json({error:"No file"});
+    const s=await getSettings();
+    const activeIds=[s.activeReport?`masjid/laporan_keuangan/${s.activeReport.split("/").pop()}`:null].filter(Boolean);
+    await enforceLimit("laporan_keuangan",activeIds);
+    const fn=Date.now();
+    const result=await uploadToCloudinary(req.file.buffer,"laporan_keuangan",fn);
+    res.json({success:true,path:`laporan_keuangan/${fn}`,url:result.secure_url});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Daftar semua laporan keuangan dari Cloudinary ───
 app.get("/api/reports", async (req, res) => {
-  try {
-    const files = await listCloudinaryImages("laporan_keuangan");
-    res.json(files);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { res.json(await listCloudinaryImages("laporan_keuangan")); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Set laporan keuangan aktif ──────────────────────
 app.post("/api/report", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    const { path: reportPath, url: reportUrl } = req.body;
-    settings.activeReport = reportPath;
-    settings.activeReportUrl = reportUrl;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); s.activeReport=req.body.path; s.activeReportUrl=req.body.url; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Hapus laporan keuangan dari Cloudinary ──────────
 app.delete("/api/report", async (req, res) => {
   try {
-    const { path: reportPath, public_id } = req.body;
-    if (!reportPath) return res.status(400).json({ error: "No path provided" });
-
-    const settings = await getSettings();
-    if (settings.activeReport === reportPath) {
-      return res.status(400).json({ error: "Tidak bisa menghapus laporan yang sedang aktif." });
-    }
-
-    if (public_id) await cloudinary.uploader.destroy(public_id);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    const {path:p,public_id}=req.body;
+    if(!p) return res.status(400).json({error:"No path"});
+    const s=await getSettings();
+    if(s.activeReport===p) return res.status(400).json({error:"Tidak bisa hapus laporan aktif."});
+    if(public_id) await cloudinary.uploader.destroy(public_id);
+    res.json({success:true});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Reset / discard laporan keuangan aktif ──────────
 app.post("/api/report/discard", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    delete settings.activeReport;
-    delete settings.activeReportUrl;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); delete s.activeReport; delete s.activeReportUrl; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Upload jadwal kajian ke Cloudinary ──────────────
-// Auto-hapus jadwal terlama jika sudah >= MAX_IMAGES
 app.post("/api/upload-jadwal", upload.single("jadwalImage"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-    const settings = await getSettings();
-    const activeIds = settings.activeJadwal
-      ? [`masjid/jadwal_kajian/${settings.activeJadwal.split("/").pop()}`]
-      : [];
-
-    await enforceLimit("jadwal_kajian", activeIds);
-
-    const filename = Date.now();
-    const result = await uploadToCloudinary(req.file.buffer, "jadwal_kajian", filename);
-    res.json({ success: true, path: `jadwal_kajian/${filename}`, url: result.secure_url });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    if(!req.file) return res.status(400).json({error:"No file"});
+    const s=await getSettings();
+    const activeIds=s.activeJadwal?[`masjid/jadwal_kajian/${s.activeJadwal.split("/").pop()}`]:[];
+    await enforceLimit("jadwal_kajian",activeIds);
+    const fn=Date.now();
+    const result=await uploadToCloudinary(req.file.buffer,"jadwal_kajian",fn);
+    res.json({success:true,path:`jadwal_kajian/${fn}`,url:result.secure_url});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Daftar semua jadwal kajian dari Cloudinary ──────
 app.get("/api/jadwals", async (req, res) => {
-  try {
-    const files = await listCloudinaryImages("jadwal_kajian");
-    res.json(files);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { res.json(await listCloudinaryImages("jadwal_kajian")); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Set jadwal kajian aktif ─────────────────────────
 app.post("/api/jadwal", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    settings.activeJadwal = req.body.path;
-    settings.activeJadwalUrl = req.body.url;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); s.activeJadwal=req.body.path; s.activeJadwalUrl=req.body.url; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Hapus jadwal kajian dari Cloudinary ─────────────
 app.delete("/api/jadwal", async (req, res) => {
   try {
-    const { path: jadwalPath, public_id } = req.body;
-    if (!jadwalPath) return res.status(400).json({ error: "No path provided" });
-
-    const settings = await getSettings();
-    if (settings.activeJadwal === jadwalPath) {
-      return res.status(400).json({ error: "Tidak bisa menghapus jadwal yang sedang aktif." });
-    }
-
-    if (public_id) await cloudinary.uploader.destroy(public_id);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+    const {path:p,public_id}=req.body;
+    if(!p) return res.status(400).json({error:"No path"});
+    const s=await getSettings();
+    if(s.activeJadwal===p) return res.status(400).json({error:"Tidak bisa hapus jadwal aktif."});
+    if(public_id) await cloudinary.uploader.destroy(public_id);
+    res.json({success:true});
+  } catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// ── API: Reset / discard jadwal kajian aktif ────────────
 app.post("/api/jadwal/discard", async (req, res) => {
-  try {
-    const settings = await getSettings();
-    delete settings.activeJadwal;
-    delete settings.activeJadwalUrl;
-    await saveSettings(settings);
-    res.json({ success: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
+  try { const s=await getSettings(); delete s.activeJadwal; delete s.activeJadwalUrl; await saveSettings(s); res.json({success:true}); }
+  catch(e){ res.status(500).json({error:e.message}); }
 });
 
-app.listen(PORT, () =>
-  console.log(`✅ Smart Masjid Pro berjalan di http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`✅ Smart Masjid Pro → http://localhost:${PORT}`));

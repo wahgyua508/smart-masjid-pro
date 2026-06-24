@@ -490,142 +490,146 @@
           </div>
         </div>
 
-        <div
-          class="bg-surface-container-lowest rounded-xl p-8 ambient-shadow border border-outline-variant/10 mt-gutter"
-        >
-          <div class="flex justify-between items-center mb-6">
+        <!-- ── STATUS GOOGLE SHEET: KEUANGAN ── -->
+        <div class="bg-surface-container-lowest rounded-xl p-8 ambient-shadow border border-outline-variant/10 mt-gutter">
+          <div class="flex justify-between items-center mb-4">
             <div>
-              <h3
-                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest flex items-center gap-2 mb-1"
-              >
-                <span class="material-symbols-outlined text-[20px]"
-                  >bar_chart</span
-                >
-                MANAJEMEN LAPORAN KEUANGAN
+              <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest flex items-center gap-2 mb-1">
+                <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+                TABEL KEUANGAN — GOOGLE SHEET
               </h3>
-              <div
-                class="flex items-center gap-2 mt-2 bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20"
-              >
-                <span class="relative flex h-2 w-2">
-                  <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
-                  ></span>
-                  <span
-                    class="relative inline-flex rounded-full h-2 w-2 bg-primary"
-                  ></span>
-                </span>
-                <span
-                  class="font-label-md text-[11px] text-primary uppercase font-bold"
-                  >Sync: Live on Display</span
-                >
-              </div>
-              <p class="font-body-md text-[14px] text-on-surface-variant">
-                Unggah Laporan Keuangan (Screenshot Excel) untuk ditampilkan di
-                layar utama.
+              <p class="font-body-md text-[14px] text-on-surface-variant mt-1">
+                Data keuangan dikelola langsung melalui Google Sheet. Setiap perubahan di Sheet otomatis terkirim ke layar masjid.
               </p>
             </div>
-            <div class="flex items-center gap-2">
-              <label
-                class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md hover:bg-secondary transition-colors hover:text-on-secondary flex items-center gap-2 cursor-pointer"
-              >
-                <span class="material-symbols-outlined text-[18px]">upload_file</span>
-                Unggah Gambar Baru
-                <input type="file" id="upload-report" accept="image/*" class="hidden" />
-              </label>
+            <button id="reset-finance"
+              class="px-4 py-2 rounded-lg border border-error/50 text-error font-label-md text-label-md hover:bg-error/5 transition-colors flex items-center gap-2"
+              type="button">
+              <span class="material-symbols-outlined text-[18px]">delete_sweep</span>Reset Data
+            </button>
+          </div>
+
+          <!-- Status card -->
+          <div id="finance-status-card" class="rounded-xl border border-outline-variant/20 bg-surface-container-low p-5 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div id="finance-dot" class="w-3 h-3 rounded-full bg-outline-variant"></div>
+                <span id="finance-status-text" class="font-label-md text-[13px] text-on-surface-variant">Memuat status...</span>
+              </div>
+              <span id="finance-updated-at" class="font-body-md text-[12px] text-on-surface-variant opacity-60"></span>
+            </div>
+
+            <!-- Preview tabel (3 baris terakhir) -->
+            <div id="finance-preview-wrap" style="display:none">
+              <div class="mb-2 flex items-center gap-2">
+                <span class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider">Preview (3 baris terakhir)</span>
+              </div>
+              <div class="overflow-x-auto rounded-lg border border-outline-variant/20">
+                <table class="w-full text-[12px]" style="border-collapse:collapse">
+                  <thead>
+                    <tr id="finance-preview-thead-row">
+                      <th class="px-3 py-2 text-left font-bold">Tanggal</th>
+                      <th class="px-3 py-2 text-left font-bold">Keterangan</th>
+                      <th class="px-3 py-2 text-left font-bold">Masuk</th>
+                      <th class="px-3 py-2 text-left font-bold">Keluar</th>
+                      <th class="px-3 py-2 text-left font-bold">Saldo</th>
+                    </tr>
+                  </thead>
+                  <tbody id="finance-preview-tbody"></tbody>
+                </table>
+              </div>
+              <p id="finance-row-count" class="text-[11px] text-on-surface-variant mt-2 opacity-70"></p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="finance-empty-state" class="flex flex-col items-center gap-2 py-4 opacity-50">
+              <span class="material-symbols-outlined text-4xl text-on-surface-variant">table_view</span>
+              <p class="text-[13px] text-on-surface-variant text-center">Belum ada data dari Google Sheet.<br>Edit Sheet Keuangan untuk memulai sinkronisasi.</p>
             </div>
           </div>
 
-          <!-- Manajemen Laporan Keuangan -->
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="font-label-md text-[13px] text-on-surface uppercase tracking-wider">Laporan Keuangan Aktif</h4>
-              <button
-                id="discard-slide-1"
-                class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-[13px] hover:bg-primary/5 transition-colors flex items-center gap-1"
-                type="button"
-              >
-                <span class="material-symbols-outlined text-[16px]">restart_alt</span>
-                Discard Changes
-              </button>
-            </div>
-            <div
-              id="report-grid-1"
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            >
-              <div class="col-span-4 text-center py-8 text-on-surface-variant font-body-md text-[14px]">
-                Memuat daftar laporan keuangan...
-              </div>
+          <!-- Panduan singkat -->
+          <div class="mt-4 rounded-lg bg-primary/5 border border-primary/10 px-5 py-4 flex gap-3 items-start">
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">info</span>
+            <div>
+              <p class="font-label-md text-[13px] text-primary font-semibold mb-1">Cara memperbarui data keuangan:</p>
+              <ol class="text-[12px] text-on-surface-variant space-y-0.5 list-decimal list-inside">
+                <li>Buka Google Sheet masjid Anda</li>
+                <li>Edit atau tambah baris di tab <strong>Keuangan</strong></li>
+                <li>Data otomatis terkirim ke layar dalam beberapa detik</li>
+              </ol>
             </div>
           </div>
         </div>
 
-        <!-- ── MANAJEMEN JADWAL KAJIAN ── -->
-        <div
-          class="bg-surface-container-lowest rounded-xl p-8 ambient-shadow border border-outline-variant/10 mt-gutter"
-        >
-          <div class="flex justify-between items-center mb-6">
+        <!-- ── STATUS GOOGLE SHEET: JADWAL KAJIAN ── -->
+        <div class="bg-surface-container-lowest rounded-xl p-8 ambient-shadow border border-outline-variant/10 mt-gutter">
+          <div class="flex justify-between items-center mb-4">
             <div>
-              <h3
-                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest flex items-center gap-2 mb-1"
-              >
-                <span class="material-symbols-outlined text-[20px]">calendar_month</span>
-                MANAJEMEN JADWAL KAJIAN
+              <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest flex items-center gap-2 mb-1">
+                <span class="material-symbols-outlined text-[20px]">auto_stories</span>
+                JADWAL KAJIAN — GOOGLE SHEET
               </h3>
-              <div
-                class="flex items-center gap-2 mt-2 bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/20"
-              >
-                <span class="relative flex h-2 w-2">
-                  <span
-                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"
-                  ></span>
-                  <span
-                    class="relative inline-flex rounded-full h-2 w-2 bg-primary"
-                  ></span>
-                </span>
-                <span
-                  class="font-label-md text-[11px] text-primary uppercase font-bold"
-                  >Sync: Live on Display</span
-                >
-              </div>
-              <p class="font-body-md text-[14px] text-on-surface-variant">
-                Unggah Jadwal Kajian (Screenshot jadwal masjid) untuk ditampilkan di
-                layar utama.
+              <p class="font-body-md text-[14px] text-on-surface-variant mt-1">
+                Jadwal kajian dikelola langsung melalui Google Sheet. Setiap perubahan di Sheet otomatis terkirim ke layar masjid.
               </p>
             </div>
-            <div class="flex items-center gap-2">
-              <label
-                class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg font-label-md text-label-md hover:bg-secondary transition-colors hover:text-on-secondary flex items-center gap-2 cursor-pointer"
-              >
-                <span class="material-symbols-outlined text-[18px]">upload_file</span>
-                Unggah Gambar Baru
-                <input type="file" id="upload-jadwal" accept="image/*" class="hidden" />
-              </label>
+            <button id="reset-kajian"
+              class="px-4 py-2 rounded-lg border border-error/50 text-error font-label-md text-label-md hover:bg-error/5 transition-colors flex items-center gap-2"
+              type="button">
+              <span class="material-symbols-outlined text-[18px]">delete_sweep</span>Reset Data
+            </button>
+          </div>
+
+          <!-- Status card -->
+          <div id="kajian-status-card" class="rounded-xl border border-outline-variant/20 bg-surface-container-low p-5 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div id="kajian-dot" class="w-3 h-3 rounded-full bg-outline-variant"></div>
+                <span id="kajian-status-text" class="font-label-md text-[13px] text-on-surface-variant">Memuat status...</span>
+              </div>
+              <span id="kajian-updated-at" class="font-body-md text-[12px] text-on-surface-variant opacity-60"></span>
+            </div>
+
+            <!-- Preview tabel (3 baris terakhir) -->
+            <div id="kajian-preview-wrap" style="display:none">
+              <div class="mb-2">
+                <span class="font-label-md text-[11px] text-on-surface-variant uppercase tracking-wider">Preview (3 baris terakhir)</span>
+              </div>
+              <div class="overflow-x-auto rounded-lg border border-outline-variant/20">
+                <table class="w-full text-[12px]" style="border-collapse:collapse">
+                  <thead>
+                    <tr id="kajian-preview-thead-row">
+                      <th class="px-3 py-2 text-left font-bold">Hari/Tanggal</th>
+                      <th class="px-3 py-2 text-left font-bold">Waktu</th>
+                      <th class="px-3 py-2 text-left font-bold">Materi</th>
+                      <th class="px-3 py-2 text-left font-bold">Ustadz</th>
+                      <th class="px-3 py-2 text-left font-bold">Tempat</th>
+                    </tr>
+                  </thead>
+                  <tbody id="kajian-preview-tbody"></tbody>
+                </table>
+              </div>
+              <p id="kajian-row-count" class="text-[11px] text-on-surface-variant mt-2 opacity-70"></p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="kajian-empty-state" class="flex flex-col items-center gap-2 py-4 opacity-50">
+              <span class="material-symbols-outlined text-4xl text-on-surface-variant">event_note</span>
+              <p class="text-[13px] text-on-surface-variant text-center">Belum ada data dari Google Sheet.<br>Edit Sheet Jadwal untuk memulai sinkronisasi.</p>
             </div>
           </div>
 
-          <!-- Jadwal Kajian Grid -->
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-on-primary text-[12px] font-bold">J</span>
-                <h4 class="font-label-md text-[13px] text-on-surface uppercase tracking-wider">Gambar Jadwal Kajian Aktif</h4>
-              </div>
-              <button
-                id="discard-jadwal"
-                class="px-4 py-2 rounded-lg border border-primary text-primary font-label-md text-[13px] hover:bg-primary/5 transition-colors flex items-center gap-1"
-                type="button"
-              >
-                <span class="material-symbols-outlined text-[16px]">restart_alt</span>
-                Discard Changes
-              </button>
-            </div>
-            <div
-              id="jadwal-grid"
-              class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            >
-              <div class="col-span-4 text-center py-8 text-on-surface-variant font-body-md text-[14px]">
-                Memuat daftar jadwal kajian...
-              </div>
+          <!-- Panduan singkat -->
+          <div class="mt-4 rounded-lg bg-primary/5 border border-primary/10 px-5 py-4 flex gap-3 items-start">
+            <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">info</span>
+            <div>
+              <p class="font-label-md text-[13px] text-primary font-semibold mb-1">Cara memperbarui jadwal kajian:</p>
+              <ol class="text-[12px] text-on-surface-variant space-y-0.5 list-decimal list-inside">
+                <li>Buka Google Sheet masjid Anda</li>
+                <li>Edit atau tambah baris di tab <strong>Jadwal</strong></li>
+                <li>Jadwal baru otomatis tampil di layar dalam beberapa detik</li>
+              </ol>
             </div>
           </div>
         </div>
@@ -1065,24 +1069,6 @@
         }
       });
 
-      // Upload laporan baru — setelah upload langsung reload grid
-      document
-        .getElementById("upload-report")
-        .addEventListener("change", async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const form = new FormData();
-          form.append("reportImage", file);
-          try {
-            await fetch("/api/upload-report", { method: "POST", body: form });
-            showToast("✅ Dokumen laporan keuangan sukses diunggah!");
-            loadReports();
-          } catch {
-            showToast("❌ Terjadi kesalahan saat mengunggah laporan.");
-          }
-          e.target.value = "";
-        });
-
       // ── 7. Modul Pengelola Jadwal Kajian ───────────────────
       function renderJadwalGrid(gridId, jadwals, activePath) {
         const grid = document.getElementById(gridId);
@@ -1179,24 +1165,6 @@
         }
       });
 
-      // Upload jadwal baru — setelah upload langsung reload grid
-      document
-        .getElementById("upload-jadwal")
-        .addEventListener("change", async (e) => {
-          const file = e.target.files[0];
-          if (!file) return;
-          const form = new FormData();
-          form.append("jadwalImage", file);
-          try {
-            await fetch("/api/upload-jadwal", { method: "POST", body: form });
-            showToast("✅ Gambar jadwal kajian sukses diunggah!");
-            loadJadwals();
-          } catch {
-            showToast("❌ Terjadi kesalahan saat mengunggah jadwal.");
-          }
-          e.target.value = "";
-        });
-
       // ── Lokasi Waktu Sholat ─────────────────────────────
       async function loadSavedLocation() {
         try {
@@ -1278,6 +1246,138 @@
 
       loadSavedLocation();
       loadSavedMethod();
+
+
+      // ── 8. Status Panel Google Sheet ─────────────────────
+      function formatRupiahDash(n) {
+        if (!n && n !== 0) return "";
+        const num = parseFloat(String(n).replace(/[^0-9.-]/g, "")) || 0;
+        return "Rp " + num.toLocaleString("id-ID");
+      }
+
+      function setDotStatus(dotId, statusId, hasData) {
+        const dot = document.getElementById(dotId);
+        const txt = document.getElementById(statusId);
+        if (hasData) {
+          dot.className = "w-3 h-3 rounded-full bg-green-500";
+          txt.textContent = "Terhubung — data aktif dari Google Sheet";
+          txt.className = "font-label-md text-[13px] text-green-700";
+        } else {
+          dot.className = "w-3 h-3 rounded-full bg-outline-variant";
+          txt.textContent = "Menunggu data dari Google Sheet...";
+          txt.className = "font-label-md text-[13px] text-on-surface-variant";
+        }
+      }
+
+      async function loadSheetStatus() {
+        try {
+          const data = await fetch("/api/settings").then(r => r.json());
+
+          // ── Keuangan ──
+          const finRows = data.financeRows || [];
+          const finHeaders = data.financeHeaders || [];
+          setDotStatus("finance-dot", "finance-status-text", finRows.length > 0);
+          if (data.financeUpdatedAt) {
+            document.getElementById("finance-updated-at").textContent =
+              "Update terakhir: " + new Date(data.financeUpdatedAt).toLocaleString("id-ID", {dateStyle:"short", timeStyle:"short"});
+          }
+          if (finRows.length > 0) {
+            document.getElementById("finance-preview-wrap").style.display = "block";
+            document.getElementById("finance-empty-state").style.display = "none";
+            // Update thead dari headers Sheet
+            if (finHeaders.length > 0) {
+              const theadRow = document.getElementById("finance-preview-thead-row");
+              if (theadRow) theadRow.innerHTML = finHeaders.map(h =>
+                `<th class="px-3 py-2 text-left font-bold">${h}</th>`
+              ).join("");
+            }
+            const preview = finRows.slice(-3); // 3 baris terakhir
+            const tbody = document.getElementById("finance-preview-tbody");
+            tbody.innerHTML = "";
+            preview.forEach((r, i) => {
+              const tr = document.createElement("tr");
+              tr.style.background = i % 2 === 0 ? "rgba(176,240,214,0.18)" : "transparent";
+              tr.innerHTML = `
+                <td class="px-3 py-1.5 border-b border-outline-variant/10">${r.tanggal||""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10">${r.keterangan||""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10 text-green-700 font-semibold">${r.masuk?formatRupiahDash(r.masuk):""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10 text-red-700 font-semibold">${r.keluar?formatRupiahDash(r.keluar):""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10 font-semibold">${r.saldo?formatRupiahDash(r.saldo):""}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            document.getElementById("finance-row-count").textContent =
+              `Total ${finRows.length} baris data keuangan tersinkronisasi ke layar.`;
+          } else {
+            document.getElementById("finance-preview-wrap").style.display = "none";
+            document.getElementById("finance-empty-state").style.display = "flex";
+          }
+
+          // ── Kajian ──
+          const kajRows = data.kajianRows || [];
+          const kajHeaders = data.kajianHeaders || [];
+          setDotStatus("kajian-dot", "kajian-status-text", kajRows.length > 0);
+          if (data.kajianUpdatedAt) {
+            document.getElementById("kajian-updated-at").textContent =
+              "Update terakhir: " + new Date(data.kajianUpdatedAt).toLocaleString("id-ID", {dateStyle:"short", timeStyle:"short"});
+          }
+          if (kajRows.length > 0) {
+            document.getElementById("kajian-preview-wrap").style.display = "block";
+            document.getElementById("kajian-empty-state").style.display = "none";
+            // Update thead dari headers Sheet
+            if (kajHeaders.length > 0) {
+              const theadRow = document.getElementById("kajian-preview-thead-row");
+              if (theadRow) theadRow.innerHTML = kajHeaders.map(h =>
+                `<th class="px-3 py-2 text-left font-bold">${h}</th>`
+              ).join("");
+            }
+            const preview = kajRows.slice(-3);
+            const tbody = document.getElementById("kajian-preview-tbody");
+            tbody.innerHTML = "";
+            preview.forEach((r, i) => {
+              const tr = document.createElement("tr");
+              tr.style.background = i % 2 === 0 ? "rgba(176,240,214,0.18)" : "transparent";
+              tr.innerHTML = `
+                <td class="px-3 py-1.5 border-b border-outline-variant/10"><span style="background:#064e3b;color:#fed65b;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700">${r.hari||""}</span></td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10">${r.waktu||""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10 font-semibold">${r.materi||""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10">${r.ustadz||""}</td>
+                <td class="px-3 py-1.5 border-b border-outline-variant/10">${r.tempat||""}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            document.getElementById("kajian-row-count").textContent =
+              `Total ${kajRows.length} jadwal kajian tersinkronisasi ke layar.`;
+          } else {
+            document.getElementById("kajian-preview-wrap").style.display = "none";
+            document.getElementById("kajian-empty-state").style.display = "flex";
+          }
+        } catch(e) {
+          console.error("Gagal memuat status sheet:", e);
+        }
+      }
+      loadSheetStatus();
+      setInterval(loadSheetStatus, 10000); // refresh setiap 10 detik
+
+      // Tombol reset data keuangan
+      document.getElementById("reset-finance").addEventListener("click", async () => {
+        if (!confirm("Hapus semua data keuangan dari Google Sheet di Redis?\nDisplay akan menampilkan placeholder sampai Sheet dikirim ulang.")) return;
+        try {
+          await fetch("/api/finance", { method: "DELETE" });
+          showToast("🗑️ Data keuangan berhasil direset.");
+          loadSheetStatus();
+        } catch { showToast("❌ Gagal reset data keuangan."); }
+      });
+
+      // Tombol reset data kajian
+      document.getElementById("reset-kajian").addEventListener("click", async () => {
+        if (!confirm("Hapus semua data jadwal kajian dari Redis?\nDisplay akan menampilkan placeholder sampai Sheet dikirim ulang.")) return;
+        try {
+          await fetch("/api/kajian", { method: "DELETE" });
+          showToast("🗑️ Data jadwal kajian berhasil direset.");
+          loadSheetStatus();
+        } catch { showToast("❌ Gagal reset data kajian."); }
+      });
 
     </script>
   </body>
